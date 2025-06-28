@@ -21,7 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateDescriptionAction } from '@/app/actions';
 import { Loader2, PlusCircle, Save, Trash2, Wand2 } from 'lucide-react';
 
-const menuItemSchema = z.object({
+export const menuItemSchema = z.object({
   dishName: z.string().min(1, 'Dish name is required.'),
   price: z.coerce.number().positive('Price must be a positive number.'),
   description: z.string().min(10, 'Description must be at least 10 characters.'),
@@ -31,9 +31,13 @@ const menuFormSchema = z.object({
   items: z.array(menuItemSchema).min(1, 'Please add at least one menu item.'),
 });
 
-type MenuFormValues = z.infer<typeof menuFormSchema>;
+export type MenuFormValues = z.infer<typeof menuFormSchema>;
 
-export function MenuForm() {
+interface MenuFormProps {
+  onMenuSaved: (data: MenuFormValues) => void;
+}
+
+export function MenuForm({ onMenuSaved }: MenuFormProps) {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [generatingStates, setGeneratingStates] = useState<{ [key: number]: boolean }>({});
@@ -100,7 +104,7 @@ export function MenuForm() {
       description: 'Your menu has been successfully created.',
     });
     setIsSaving(false);
-    // Here you would typically redirect to the dashboard, e.g., router.push('/dashboard');
+    onMenuSaved(data);
   };
 
   return (

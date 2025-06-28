@@ -2,15 +2,26 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { MenuForm } from '@/components/menu-form';
+import { MenuForm, type MenuFormValues } from '@/components/menu-form';
+import { Menu } from '@/components/menu';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { UtensilsCrossed } from 'lucide-react';
 
 export default function Home() {
-  const [showMenuForm, setShowMenuForm] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'landing' | 'form' | 'menu'>('landing');
+  const [menuData, setMenuData] = useState<MenuFormValues | null>(null);
 
-  if (showMenuForm) {
-    return <MenuForm />;
+  const handleMenuSaved = (data: MenuFormValues) => {
+    setMenuData(data);
+    setCurrentStep('menu');
+  };
+
+  if (currentStep === 'menu' && menuData) {
+    return <Menu items={menuData.items} />;
+  }
+  
+  if (currentStep === 'form') {
+    return <MenuForm onMenuSaved={handleMenuSaved} />;
   }
 
   return (
@@ -33,7 +44,7 @@ export default function Home() {
           </CardHeader>
           <CardContent className="flex justify-center pb-8 sm:pb-12">
             <Button
-              onClick={() => setShowMenuForm(true)}
+              onClick={() => setCurrentStep('form')}
               size="lg"
               className="bg-accent text-accent-foreground hover:bg-accent/90 transform hover:scale-105 transition-transform duration-200 text-lg font-bold py-7 px-10 rounded-xl shadow-lg hover:shadow-xl"
             >
