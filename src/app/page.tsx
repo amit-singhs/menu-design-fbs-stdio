@@ -26,10 +26,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen w-full bg-background">
-      <main className="flex min-h-screen flex-col items-center justify-center bg-cover bg-center p-4 sm:p-8">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-cover bg-center p-4">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background -z-0" />
-        <Card className="w-full max-w-2xl animate-in fade-in zoom-in-95 duration-500 rounded-2xl shadow-2xl bg-card/80 backdrop-blur-sm z-10">
-          <CardHeader className="text-center p-8 sm:p-12">
+        <Card className="w-full max-w-md animate-in fade-in zoom-in-95 duration-500 rounded-2xl shadow-2xl bg-card/80 backdrop-blur-sm z-10">
+          <CardHeader className="text-center p-6 sm:p-10">
             <div className="flex justify-center mb-6">
               <div className="p-4 bg-primary rounded-full text-primary-foreground">
                 <UtensilsCrossed className="h-10 w-10" />
@@ -38,15 +38,15 @@ export default function Home() {
             <h1 className="font-headline text-4xl sm:text-5xl font-bold text-primary mb-2">
               Welcome to MenuStart
             </h1>
-            <p className="text-muted-foreground text-lg sm:text-xl">
+            <p className="text-muted-foreground text-base sm:text-lg">
               Your journey to a stunning digital menu begins now. Let's craft it together.
             </p>
           </CardHeader>
-          <CardContent className="flex justify-center pb-8 sm:pb-12">
+          <CardContent className="flex justify-center px-6 pb-8 sm:px-10 sm:pb-10">
             <Button
               onClick={() => setCurrentStep('form')}
               size="lg"
-              className="bg-accent text-accent-foreground hover:bg-accent/90 transform hover:scale-105 transition-transform duration-200 text-lg font-bold py-7 px-10 rounded-xl shadow-lg hover:shadow-xl"
+              className="bg-accent text-accent-foreground hover:bg-accent/90 transform hover:scale-105 transition-transform duration-200 text-lg font-bold h-14 px-8 w-full sm:w-auto rounded-xl shadow-lg hover:shadow-xl"
             >
               Create Your Menu
             </Button>
