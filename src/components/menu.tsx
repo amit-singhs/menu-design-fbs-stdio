@@ -14,21 +14,22 @@ import {
   SheetFooter,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useMemo } from 'react';
 import { Utensils, ShoppingCart, Plus, Minus, Trash2, Loader2 } from 'lucide-react';
 import type { menuItemSchema } from '@/components/menu-form';
 import { cn } from '@/lib/utils';
+import type { Order } from '@/app/page';
 
-type MenuItem = z.infer<typeof menuItemSchema>;
-type CartItem = MenuItem & { quantity: number };
+export type MenuItem = z.infer<typeof menuItemSchema>;
+export type CartItem = MenuItem & { quantity: number };
 
 interface MenuProps {
   items: MenuItem[];
+  onOrderPlaced: (order: Order) => void;
 }
 
-export function Menu({ items }: MenuProps) {
+export function Menu({ items, onOrderPlaced }: MenuProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [tableNumber, setTableNumber] = useState('');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -97,19 +98,18 @@ export function Menu({ items }: MenuProps) {
       return;
     }
 
-
     setIsPlacingOrder(true);
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     toast({
       title: 'Order Placed Successfully!',
-      description: `Your order for table #${tableNumber} is being prepared. Total: $${cartTotal.toFixed(
-        2
-      )}`,
+      description: `Your order for table #${tableNumber} is being prepared.`,
     });
+    
+    onOrderPlaced({ cart, tableNumber });
 
-    // Reset state
+    // Reset state in case component is reused
     setCart([]);
     setTableNumber('');
     setIsPlacingOrder(false);
@@ -258,18 +258,9 @@ export function Menu({ items }: MenuProps) {
                 className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 border-none bg-card animate-in fade-in slide-in-from-bottom-4 flex flex-col"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="aspect-[16/10] relative">
-                  <Image
-                    src={`https://placehold.co/600x400.png`}
-                    alt={item.dishName}
-                    fill
-                    className="object-cover"
-                    data-ai-hint="food dish"
-                  />
-                </div>
-                <CardContent className="p-4 sm:p-6 space-y-4 flex flex-col flex-grow">
+                <CardContent className="p-6 space-y-4 flex flex-col flex-grow">
                   <div className="flex justify-between items-start gap-4">
-                    <h3 className="text-xl font-bold font-headline text-foreground leading-tight">
+                    <h3 className="text-2xl font-bold font-headline text-foreground leading-tight">
                       {item.dishName}
                     </h3>
                     <div className="text-lg font-bold text-primary whitespace-nowrap pt-px font-mono">

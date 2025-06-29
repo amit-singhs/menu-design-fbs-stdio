@@ -3,21 +3,42 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { MenuForm, type MenuFormValues } from '@/components/menu-form';
-import { Menu } from '@/components/menu';
+import { Menu, type CartItem } from '@/components/menu';
+import { OrderStatus } from '@/components/order-status';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { UtensilsCrossed } from 'lucide-react';
 
+export type Order = {
+  cart: CartItem[];
+  tableNumber: string;
+};
+
 export default function Home() {
-  const [currentStep, setCurrentStep] = useState<'landing' | 'form' | 'menu'>('landing');
+  const [currentStep, setCurrentStep] = useState<'landing' | 'form' | 'menu' | 'order-status'>('landing');
   const [menuData, setMenuData] = useState<MenuFormValues | null>(null);
+  const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
 
   const handleMenuSaved = (data: MenuFormValues) => {
     setMenuData(data);
     setCurrentStep('menu');
   };
 
+  const handleOrderPlaced = (order: Order) => {
+    setPlacedOrder(order);
+    setCurrentStep('order-status');
+  };
+  
+  const handleBackToMenu = () => {
+    setPlacedOrder(null);
+    setCurrentStep('menu');
+  }
+
+  if (currentStep === 'order-status' && placedOrder) {
+    return <OrderStatus order={placedOrder} onBackToMenu={handleBackToMenu} />;
+  }
+
   if (currentStep === 'menu' && menuData) {
-    return <Menu items={menuData.items} />;
+    return <Menu items={menuData.items} onOrderPlaced={handleOrderPlaced} />;
   }
   
   if (currentStep === 'form') {
