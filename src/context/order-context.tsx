@@ -23,8 +23,57 @@ interface OrderContextType {
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
+// Mock data for demonstration purposes. We define it outside to prevent re-creation on re-renders.
+const MOCK_ORDERS: Order[] = [
+  {
+    id: 'mock-1',
+    cart: [
+      { dishName: 'Spaghetti Carbonara', price: 15.99, description: 'Classic Italian pasta.', quantity: 1 },
+      { dishName: 'Garlic Bread', price: 5.99, description: 'Toasted with garlic butter.', quantity: 2 },
+    ],
+    tableNumber: '5',
+    status: 'placed',
+    createdAt: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
+  },
+  {
+    id: 'mock-2',
+    cart: [
+      { dishName: 'Margherita Pizza', price: 12.99, description: 'Tomato, mozzarella, basil.', quantity: 1 },
+    ],
+    tableNumber: '12',
+    status: 'preparing',
+    createdAt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
+  },
+    {
+    id: 'mock-3',
+    cart: [
+      { dishName: 'Caesar Salad', price: 10.50, description: 'Fresh and crispy.', quantity: 1 },
+      { dishName: 'Iced Tea', price: 3.00, description: 'Refreshing drink.', quantity: 1 },
+    ],
+    tableNumber: '8',
+    status: 'preparing',
+    createdAt: new Date(Date.now() - 8 * 60 * 1000), // 8 minutes ago
+  },
+  {
+    id: 'mock-4',
+    cart: [
+      { dishName: 'Cheeseburger', price: 14.00, description: 'With fries.', quantity: 1 },
+    ],
+    tableNumber: '3',
+    status: 'ready',
+    createdAt: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+  },
+];
+
+
 export function OrderProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
+  
+  // Using useEffect to set mock data on the client to avoid hydration issues
+  // since `createdAt` uses `new Date()`. This runs once after the component mounts.
+  useEffect(() => {
+    setOrders(MOCK_ORDERS);
+  }, []);
 
   const addOrder = useCallback((orderData: Omit<Order, 'id' | 'status' | 'createdAt'>): Order => {
     const newOrder: Order = {
