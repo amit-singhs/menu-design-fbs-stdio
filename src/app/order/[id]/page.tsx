@@ -12,18 +12,32 @@ import { Button } from '@/components/ui/button';
 export default function OrderStatusPage() {
   const params = useParams();
   const router = useRouter();
-  const { orders, getOrderById } = useOrders(); // Depend on orders to trigger re-renders
-  const [order, setOrder] = useState<Order | undefined | null>(undefined); // undefined: loading, null: not found
+  const { orders, getOrderById, updateOrderStatus } = useOrders();
+  const [order, setOrder] = useState<Order | undefined | null>(undefined);
 
   const orderId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   useEffect(() => {
     if (orderId) {
       const foundOrder = getOrderById(orderId);
-      // The component will re-render when `orders` changes, so this useEffect will run again.
       setOrder(foundOrder || null);
     }
-  }, [orderId, orders, getOrderById]); // Add `orders` to dependency array
+  }, [orderId, orders, getOrderById]);
+  
+  useEffect(() => {
+    // Automatically advance the order status for demonstration purposes.
+    if (order && orderId && order.status !== 'ready') {
+      const timer = setTimeout(() => {
+        if (order.status === 'placed') {
+          updateOrderStatus(orderId, 'preparing');
+        } else if (order.status === 'preparing') {
+          updateOrderStatus(orderId, 'ready');
+        }
+      }, 4000); // 4-second delay
+
+      return () => clearTimeout(timer);
+    }
+  }, [order, orderId, updateOrderStatus]);
   
   const handleBackToMenu = () => {
     // A bit of a hack to reset the main page state. In a real app, you might use a different navigation flow.
