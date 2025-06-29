@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
+import { OrderProvider } from '@/context/order-context';
 
 export const metadata: Metadata = {
   title: 'MenuStart',
@@ -23,7 +24,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        {children}
+        <OrderProvider>
+          {children}
+        </OrderProvider>
         <Toaster />
       </body>
     </html>

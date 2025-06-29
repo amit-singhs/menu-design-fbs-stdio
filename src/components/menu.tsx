@@ -19,14 +19,18 @@ import { useState, useMemo } from 'react';
 import { Utensils, ShoppingCart, Plus, Minus, Trash2, Loader2 } from 'lucide-react';
 import type { menuItemSchema } from '@/components/menu-form';
 import { cn } from '@/lib/utils';
-import type { Order } from '@/app/page';
 
 export type MenuItem = z.infer<typeof menuItemSchema>;
 export type CartItem = MenuItem & { quantity: number };
 
+type PlacedOrderInfo = {
+  cart: CartItem[];
+  tableNumber: string;
+};
+
 interface MenuProps {
   items: MenuItem[];
-  onOrderPlaced: (order: Order) => void;
+  onOrderPlaced: (order: PlacedOrderInfo) => void;
 }
 
 export function Menu({ items, onOrderPlaced }: MenuProps) {
@@ -100,7 +104,7 @@ export function Menu({ items, onOrderPlaced }: MenuProps) {
 
     setIsPlacingOrder(true);
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     toast({
       title: 'Order Placed Successfully!',

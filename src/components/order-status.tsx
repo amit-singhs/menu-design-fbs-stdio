@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, type SVGProps } from 'react';
+import { useMemo, type SVGProps } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChefHat, CheckCircle2, PartyPopper } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Order } from '@/app/page';
+import type { Order } from '@/context/order-context';
 
 const orderStatuses = [
   { name: 'Approved', icon: CheckCircle2, description: "Your order is confirmed." },
@@ -19,16 +19,14 @@ interface OrderStatusProps {
 }
 
 export function OrderStatus({ order, onBackToMenu }: OrderStatusProps) {
-    const [currentStatusIndex, setCurrentStatusIndex] = useState(0);
-
-    useEffect(() => {
-        if (currentStatusIndex < orderStatuses.length - 1) {
-          const timer = setTimeout(() => {
-            setCurrentStatusIndex(prev => prev + 1);
-          }, 5000); // 5 seconds for demo
-          return () => clearTimeout(timer);
+    const currentStatusIndex = useMemo(() => {
+        switch(order.status) {
+            case 'placed': return 0;
+            case 'preparing': return 1;
+            case 'ready': return 2;
+            default: return 0;
         }
-    }, [currentStatusIndex]);
+    }, [order.status]);
 
     const isComplete = currentStatusIndex === orderStatuses.length - 1;
     
