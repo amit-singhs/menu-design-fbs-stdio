@@ -1,11 +1,13 @@
+
 'use client';
 
-import { useMemo, type SVGProps } from 'react';
+import { useMemo, useState, type SVGProps } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChefHat, CheckCircle2, PartyPopper } from 'lucide-react';
+import { ChefHat, CheckCircle2, PartyPopper, SmilePlus, Utensils } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Order } from '@/context/order-context';
+import { FeedbackForm } from '@/components/feedback-form';
 
 const orderStatuses = [
   { name: 'Approved', icon: CheckCircle2, description: "Your order is confirmed." },
@@ -19,6 +21,8 @@ interface OrderStatusProps {
 }
 
 export function OrderStatus({ order, onBackToMenu }: OrderStatusProps) {
+    const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+    
     const currentStatusIndex = useMemo(() => {
         switch(order.status) {
             case 'placed': return 0;
@@ -43,43 +47,49 @@ export function OrderStatus({ order, onBackToMenu }: OrderStatusProps) {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 sm:p-8">
-                    <div className="relative">
-                        {/* Connecting Lines */}
-                        <div className="absolute left-5 top-5 bottom-5 w-0.5 bg-border -z-10" />
+                    {!isComplete ? (
+                        <div className="relative">
+                            {/* Connecting Lines */}
+                            <div className="absolute left-5 top-5 bottom-5 w-0.5 bg-border -z-10" />
 
-                        {orderStatuses.map((status, index) => {
-                            const isActive = index <= currentStatusIndex;
-                            return (
-                                <div key={status.name} className="flex items-start gap-4 relative mb-8 last:mb-0">
-                                    <div className={cn(
-                                        "flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors duration-500",
-                                        isActive ? "bg-primary border-primary text-primary-foreground" : "bg-card border-border text-muted-foreground"
-                                    )}>
-                                       <status.icon className="h-5 w-5" />
+                            {orderStatuses.map((status, index) => {
+                                const isActive = index <= currentStatusIndex;
+                                return (
+                                    <div key={status.name} className="flex items-start gap-4 relative mb-8 last:mb-0">
+                                        <div className={cn(
+                                            "flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors duration-500",
+                                            isActive ? "bg-primary border-primary text-primary-foreground" : "bg-card border-border text-muted-foreground"
+                                        )}>
+                                        <status.icon className="h-5 w-5" />
+                                        </div>
+                                        <div className="pt-1.5">
+                                            <p className={cn(
+                                                "font-bold text-lg transition-colors duration-500",
+                                                isActive ? "text-foreground" : "text-muted-foreground"
+                                            )}>{status.name}</p>
+                                            <p className="text-sm text-muted-foreground">{isActive && status.description}</p>
+                                        </div>
                                     </div>
-                                    <div className="pt-1.5">
-                                        <p className={cn(
-                                            "font-bold text-lg transition-colors duration-500",
-                                            isActive ? "text-foreground" : "text-muted-foreground"
-                                        )}>{status.name}</p>
-                                        <p className="text-sm text-muted-foreground">{isActive && status.description}</p>
-                                    </div>
-                                </div>
-                            )
-                        })}
-                    </div>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-4 p-6">
-                    {isComplete && (
-                         <div className="text-center p-4 bg-primary/10 rounded-lg w-full">
-                            <p className="font-bold text-primary">Enjoy your meal!</p>
+                                )
+                            })}
+                        </div>
+                    ) : !feedbackSubmitted ? (
+                        <FeedbackForm orderId={order.id} onFeedbackSubmitted={() => setFeedbackSubmitted(true)} />
+                    ) : (
+                        <div className="text-center py-8 space-y-4 animate-in fade-in duration-500">
+                            <SmilePlus className="h-16 w-16 text-green-500 mx-auto" />
+                            <h3 className="text-2xl font-bold">Thank You!</h3>
+                            <p className="text-muted-foreground">Your feedback has been received. We hope to see you again soon!</p>
                         </div>
                     )}
+                </CardContent>
+                <CardFooter className="flex flex-col gap-4 p-6">
                     <Button
                         size="lg"
                         className="w-full h-12 text-base"
                         onClick={onBackToMenu}
                     >
+                         <Utensils className="mr-2 h-5 w-5"/>
                         {isComplete ? 'Place Another Order' : 'Back to Menu'}
                     </Button>
                 </CardFooter>

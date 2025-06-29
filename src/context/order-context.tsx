@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { ReactNode } from 'react';
@@ -20,12 +21,13 @@ export type Order = {
   tableNumber: string;
   status: OrderStatus;
   createdAt: Date;
+  statusUpdatedAt: Date;
   specialInstructions?: string;
 };
 
 interface OrderContextType {
   orders: Order[];
-  addOrder: (orderData: Omit<Order, 'id' | 'status' | 'createdAt'>) => Order;
+  addOrder: (orderData: Omit<Order, 'id' | 'status' | 'createdAt' | 'statusUpdatedAt'>) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   getOrderById: (orderId: string) => Order | undefined;
 }
@@ -43,6 +45,7 @@ const MOCK_ORDERS: Order[] = [
     tableNumber: '5',
     status: 'placed',
     createdAt: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
+    statusUpdatedAt: new Date(Date.now() - 2 * 60 * 1000), 
     specialInstructions: 'Allergic to nuts.'
   },
   {
@@ -53,6 +56,7 @@ const MOCK_ORDERS: Order[] = [
     tableNumber: '12',
     status: 'preparing',
     createdAt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
+    statusUpdatedAt: new Date(Date.now() - 3 * 60 * 1000),
   },
     {
     id: 'mock-3',
@@ -63,6 +67,7 @@ const MOCK_ORDERS: Order[] = [
     tableNumber: '8',
     status: 'preparing',
     createdAt: new Date(Date.now() - 8 * 60 * 1000), // 8 minutes ago
+    statusUpdatedAt: new Date(Date.now() - 8 * 60 * 1000),
   },
   {
     id: 'mock-4',
@@ -72,7 +77,18 @@ const MOCK_ORDERS: Order[] = [
     tableNumber: '3',
     status: 'ready',
     createdAt: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+    statusUpdatedAt: new Date(Date.now() - 30 * 1000), // 30 seconds ago
     specialInstructions: 'Well done patty.'
+  },
+    {
+    id: 'mock-5',
+    cart: [
+      { dishName: 'Steak Frites', price: 25.00, description: 'Juicy steak with crispy fries.', quantity: 1 },
+    ],
+    tableNumber: '7',
+    status: 'ready',
+    createdAt: new Date(Date.now() - 20 * 60 * 1000), // 20 mins ago
+    statusUpdatedAt: new Date(Date.now() - 5 * 60 * 1000), // 5 mins ago
   },
 ];
 
@@ -86,12 +102,14 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     setOrders(MOCK_ORDERS);
   }, []);
 
-  const addOrder = useCallback((orderData: Omit<Order, 'id' | 'status' | 'createdAt'>): Order => {
+  const addOrder = useCallback((orderData: Omit<Order, 'id' | 'status' | 'createdAt' | 'statusUpdatedAt'>): Order => {
+    const now = new Date();
     const newOrder: Order = {
       ...orderData,
       id: `order-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       status: 'placed',
-      createdAt: new Date(),
+      createdAt: now,
+      statusUpdatedAt: now,
     };
     setOrders((prevOrders) => [newOrder, ...prevOrders]);
     return newOrder;
@@ -100,7 +118,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   const updateOrderStatus = useCallback((orderId: string, status: OrderStatus) => {
     setOrders((prevOrders) =>
       prevOrders.map((order) =>
-        order.id === orderId ? { ...order, status } : order
+        order.id === orderId ? { ...order, status, statusUpdatedAt: new Date() } : order
       )
     );
   }, []);

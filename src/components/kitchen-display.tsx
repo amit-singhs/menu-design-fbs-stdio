@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useOrders } from '@/context/order-context';
@@ -8,8 +9,28 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Utensils, Check, Clock, Info, Undo2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useEffect, useState } from 'react';
 
 function OrderCard({ order, onUpdateStatus }: { order: Order; onUpdateStatus: (id: string, status: OrderStatus) => void }) {
+  const [showRevert, setShowRevert] = useState(false);
+
+  useEffect(() => {
+    if (order.status === 'ready') {
+      const timeSinceReady = Date.now() - new Date(order.statusUpdatedAt).getTime();
+      const twoMinutes = 2 * 60 * 1000;
+
+      if (timeSinceReady < twoMinutes) {
+        setShowRevert(true);
+        const timeoutId = setTimeout(() => {
+          setShowRevert(false);
+        }, twoMinutes - timeSinceReady);
+
+        return () => clearTimeout(timeoutId);
+      }
+    }
+  }, [order.status, order.statusUpdatedAt]);
+
+
   return (
     <Card className="flex flex-col animate-in fade-in-50">
       <CardHeader>
@@ -58,10 +79,16 @@ function OrderCard({ order, onUpdateStatus }: { order: Order; onUpdateStatus: (i
             <Check className="mr-2 h-4 w-4" /> Mark as Ready
           </Button>
         )}
-        {order.status === 'ready' && (
+        {order.status === 'ready' && showRevert && (
             <Button variant="outline" className="w-full" onClick={() => onUpdateStatus(order.id, 'preparing')}>
                 <Undo2 className="mr-2 h-4 w-4" /> Move Back to Preparing
             </Button>
+        )}
+        {order.status === 'ready' && !showRevert && (
+            <div className="flex items-center justify-center w-full text-green-600 font-semibold text-sm gap-2">
+                <Check className="h-4 w-4" />
+                <span>Completed</span>
+            </div>
         )}
       </CardFooter>
     </Card>
