@@ -39,7 +39,7 @@ function OrderCard({ order, onUpdateStatus }: { order: Order; onUpdateStatus: (i
           </Button>
         )}
         {order.status === 'preparing' && (
-          <Button className="w-full" variant="secondary" onClick={() => onUpdateStatus(order.id, 'ready')}>
+          <Button className="w-full bg-chart-2 text-primary-foreground hover:bg-chart-2/90" onClick={() => onUpdateStatus(order.id, 'ready')}>
             <Check className="mr-2 h-4 w-4" /> Mark as Ready
           </Button>
         )}
