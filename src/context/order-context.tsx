@@ -2,7 +2,15 @@
 
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import type { CartItem } from '@/components/menu';
+import type { z } from 'zod';
+import type { menuItemSchema } from '@/components/menu-form';
+
+export type MenuItem = z.infer<typeof menuItemSchema>;
+
+export type CartItem = MenuItem & {
+  quantity: number;
+  specialInstructions?: string;
+};
 
 export type OrderStatus = 'placed' | 'preparing' | 'ready';
 
@@ -12,6 +20,7 @@ export type Order = {
   tableNumber: string;
   status: OrderStatus;
   createdAt: Date;
+  specialInstructions?: string;
 };
 
 interface OrderContextType {
@@ -28,12 +37,13 @@ const MOCK_ORDERS: Order[] = [
   {
     id: 'mock-1',
     cart: [
-      { dishName: 'Spaghetti Carbonara', price: 15.99, description: 'Classic Italian pasta.', quantity: 1 },
+      { dishName: 'Spaghetti Carbonara', price: 15.99, description: 'Classic Italian pasta.', quantity: 1, specialInstructions: 'Extra cheese please' },
       { dishName: 'Garlic Bread', price: 5.99, description: 'Toasted with garlic butter.', quantity: 2 },
     ],
     tableNumber: '5',
     status: 'placed',
     createdAt: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
+    specialInstructions: 'Allergic to nuts.'
   },
   {
     id: 'mock-2',
@@ -47,7 +57,7 @@ const MOCK_ORDERS: Order[] = [
     {
     id: 'mock-3',
     cart: [
-      { dishName: 'Caesar Salad', price: 10.50, description: 'Fresh and crispy.', quantity: 1 },
+      { dishName: 'Caesar Salad', price: 10.50, description: 'Fresh and crispy.', quantity: 1, specialInstructions: 'No croutons.' },
       { dishName: 'Iced Tea', price: 3.00, description: 'Refreshing drink.', quantity: 1 },
     ],
     tableNumber: '8',
@@ -62,6 +72,7 @@ const MOCK_ORDERS: Order[] = [
     tableNumber: '3',
     status: 'ready',
     createdAt: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+    specialInstructions: 'Well done patty.'
   },
 ];
 

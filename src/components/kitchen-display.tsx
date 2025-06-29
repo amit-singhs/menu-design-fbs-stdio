@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Utensils, Check, Clock } from 'lucide-react';
+import { Utensils, Check, Clock, Info } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 function OrderCard({ order, onUpdateStatus }: { order: Order; onUpdateStatus: (id: string, status: OrderStatus) => void }) {
@@ -21,15 +21,30 @@ function OrderCard({ order, onUpdateStatus }: { order: Order; onUpdateStatus: (i
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-grow">
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {order.cart.map(item => (
-            <li key={item.dishName} className="flex justify-between items-start text-sm">
-              <span className="font-semibold">{item.quantity}x</span>
-              <span className="px-2 text-left flex-grow">{item.dishName}</span>
-              <span className="font-mono">${(item.price * item.quantity).toFixed(2)}</span>
+            <li key={item.dishName}>
+              <div className="flex justify-between items-start text-sm">
+                <span className="font-semibold">{item.quantity}x</span>
+                <span className="px-2 text-left flex-grow">{item.dishName}</span>
+              </div>
+              {item.specialInstructions && (
+                <p className="pl-6 pt-1 text-xs text-muted-foreground italic">↳ "{item.specialInstructions}"</p>
+              )}
             </li>
           ))}
         </ul>
+        {order.specialInstructions && (
+          <div className="mt-4 p-2 bg-amber-50 dark:bg-amber-900/40 rounded-md border border-amber-200 dark:border-amber-900">
+             <div className="flex items-center gap-2 font-semibold text-sm text-amber-800 dark:text-amber-200">
+                <Info className="h-4 w-4" />
+                <span>Overall Instructions</span>
+             </div>
+             <p className="pt-1 pl-6 text-sm text-amber-700 dark:text-amber-300">
+                {order.specialInstructions}
+             </p>
+          </div>
+        )}
       </CardContent>
       <Separator />
       <CardFooter className="p-4 bg-muted/30">

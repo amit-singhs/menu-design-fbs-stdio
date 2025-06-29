@@ -1,11 +1,11 @@
 'use client';
 
 import type { z } from 'zod';
-import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Sheet,
   SheetContent,
@@ -13,19 +13,21 @@ import {
   SheetTitle,
   SheetFooter,
   SheetTrigger,
+  SheetDescription,
 } from '@/components/ui/sheet';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useMemo } from 'react';
-import { Utensils, ShoppingCart, Plus, Minus, Trash2, Loader2 } from 'lucide-react';
+import { Utensils, ShoppingCart, Plus, Minus, Trash2, Loader2, Info } from 'lucide-react';
 import type { menuItemSchema } from '@/components/menu-form';
-import { cn } from '@/lib/utils';
+import type { CartItem as CartItemType } from '@/context/order-context';
 
 export type MenuItem = z.infer<typeof menuItemSchema>;
-export type CartItem = MenuItem & { quantity: number };
+export type CartItem = CartItemType;
 
 type PlacedOrderInfo = {
   cart: CartItem[];
   tableNumber: string;
+  specialInstructions?: string;
 };
 
 interface MenuProps {
@@ -36,6 +38,7 @@ interface MenuProps {
 export function Menu({ items, onOrderPlaced }: MenuProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [tableNumber, setTableNumber] = useState('');
+  const [orderInstructions, setOrderInstructions] = useState('');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { toast } = useToast();
@@ -58,8 +61,16 @@ export function Menu({ items, onOrderPlaced }: MenuProps) {
             : cartItem
         );
       }
-      return [...prevCart, { ...item, quantity: 1 }];
+      return [...prevCart, { ...item, quantity: 1, specialInstructions: '' }];
     });
+  };
+  
+  const handleUpdateItemInstructions = (dishName: string, instructions: string) => {
+    setCart(prevCart => prevCart.map(item => 
+        item.dishName === dishName 
+            ? { ...item, specialInstructions: instructions } 
+            : item
+    ));
   };
 
   const handleRemoveFromCart = (dishName: string) => {
@@ -82,6 +93,7 @@ export function Menu({ items, onOrderPlaced }: MenuProps) {
   
   const clearCart = () => {
       setCart([]);
+      setOrderInstructions('');
   }
 
   const handlePlaceOrder = async () => {
@@ -111,11 +123,12 @@ export function Menu({ items, onOrderPlaced }: MenuProps) {
       description: `Your order for table #${tableNumber} is being prepared.`,
     });
     
-    onOrderPlaced({ cart, tableNumber });
+    onOrderPlaced({ cart, tableNumber, specialInstructions: orderInstructions });
 
     // Reset state in case component is reused
     setCart([]);
     setTableNumber('');
+    setOrderInstructions('');
     setIsPlacingOrder(false);
     setIsSheetOpen(false);
   };
@@ -150,53 +163,54 @@ export function Menu({ items, onOrderPlaced }: MenuProps) {
               </Button>
             </SheetTrigger>
             <SheetContent className="flex flex-col sm:max-w-md p-0">
-              <SheetHeader className="p-6 pb-4">
+              <SheetHeader className="p-6 pb-4 border-b">
                 <SheetTitle className="font-headline text-2xl">Your Order</SheetTitle>
+                <SheetDescription>Review your items and add any special requests before ordering.</SheetDescription>
               </SheetHeader>
               <div className="flex-grow overflow-y-auto px-6 py-2">
                 {cart.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-4 divide-y divide-border -mx-6 px-6">
                     {cart.map((item) => (
                       <div
                         key={item.dishName}
-                        className="flex items-center gap-2 sm:gap-4 animate-in fade-in"
+                        className="flex flex-col gap-2 sm:gap-4 animate-in fade-in pt-4"
                       >
-                        <Image
-                          src={`https://placehold.co/100x100.png`}
-                          alt={item.dishName}
-                          width={64}
-                          height={64}
-                          className="rounded-md object-cover"
-                          data-ai-hint="food dish"
-                        />
-                        <div className="flex-grow">
-                          <p className="font-semibold text-sm sm:text-base leading-tight">{item.dishName}</p>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            ${item.price.toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-0">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 rounded-full"
-                            onClick={() => handleRemoveFromCart(item.dishName)}
-                          >
-                            <Minus className="h-5 w-5" />
-                          </Button>
-                          <span className="font-bold w-6 text-center">{item.quantity}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 rounded-full"
-                            onClick={() => handleAddToCart(item)}
-                          >
-                            <Plus className="h-5 w-5" />
-                          </Button>
-                        </div>
-                        <p className="font-bold w-16 text-right text-sm sm:text-base">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </p>
+                         <div className="flex items-center gap-4">
+                            <div className="flex-grow">
+                              <p className="font-semibold text-sm sm:text-base leading-tight">{item.dishName}</p>
+                              <p className="text-xs sm:text-sm text-muted-foreground">
+                                ${item.price.toFixed(2)}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-0">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 rounded-full"
+                                onClick={() => handleRemoveFromCart(item.dishName)}
+                              >
+                                <Minus className="h-5 w-5" />
+                              </Button>
+                              <span className="font-bold w-6 text-center">{item.quantity}</span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 rounded-full"
+                                onClick={() => handleAddToCart(item)}
+                              >
+                                <Plus className="h-5 w-5" />
+                              </Button>
+                            </div>
+                            <p className="font-bold w-16 text-right text-sm sm:text-base">
+                              ${(item.price * item.quantity).toFixed(2)}
+                            </p>
+                         </div>
+                         <Input 
+                            placeholder="e.g. Extra spicy, no onions"
+                            value={item.specialInstructions}
+                            onChange={(e) => handleUpdateItemInstructions(item.dishName, e.target.value)}
+                            className="text-sm h-9"
+                         />
                       </div>
                     ))}
                   </div>
@@ -211,13 +225,21 @@ export function Menu({ items, onOrderPlaced }: MenuProps) {
               {cart.length > 0 && (
                 <SheetFooter className="mt-auto p-6 pt-4 border-t bg-background">
                   <div className="w-full space-y-4">
-                    <div className="flex justify-between font-bold text-xl">
-                      <span>Total:</span>
-                      <span className="font-mono">${cartTotal.toFixed(2)}</span>
+                     <div className="space-y-2">
+                        <Label htmlFor="orderInstructions" className="text-base flex items-center gap-1">
+                            <Info className="h-4 w-4 text-muted-foreground"/> Overall Instructions
+                        </Label>
+                        <Textarea
+                            id="orderInstructions"
+                            value={orderInstructions}
+                            onChange={(e) => setOrderInstructions(e.target.value)}
+                            placeholder="e.g., Allergic to peanuts, please deliver to the back patio."
+                            className="text-sm"
+                        />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="tableNumber" className="text-base">
-                        Table Number
+                        Table Number <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id="tableNumber"
@@ -226,6 +248,10 @@ export function Menu({ items, onOrderPlaced }: MenuProps) {
                         placeholder="e.g., 14"
                         className="text-base p-6 rounded-lg"
                       />
+                    </div>
+                    <div className="flex justify-between font-bold text-xl">
+                      <span>Total:</span>
+                      <span className="font-mono">${cartTotal.toFixed(2)}</span>
                     </div>
                     <div className="flex gap-2">
                       <Button variant="outline" className="w-1/3" onClick={clearCart}>

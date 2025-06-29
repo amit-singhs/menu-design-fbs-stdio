@@ -4,14 +4,16 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { MenuForm, type MenuFormValues } from '@/components/menu-form';
-import { Menu, type CartItem } from '@/components/menu';
+import { Menu } from '@/components/menu';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { UtensilsCrossed } from 'lucide-react';
 import { useOrders } from '@/context/order-context';
+import type { CartItem } from '@/context/order-context';
 
 type PlacedOrderInfo = {
   cart: CartItem[];
   tableNumber: string;
+  specialInstructions?: string;
 };
 
 export default function Home() {
