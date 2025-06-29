@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Utensils, Check, Clock, Info } from 'lucide-react';
+import { Utensils, Check, Clock, Info, Undo2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 function OrderCard({ order, onUpdateStatus }: { order: Order; onUpdateStatus: (id: string, status: OrderStatus) => void }) {
@@ -58,6 +58,11 @@ function OrderCard({ order, onUpdateStatus }: { order: Order; onUpdateStatus: (i
             <Check className="mr-2 h-4 w-4" /> Mark as Ready
           </Button>
         )}
+        {order.status === 'ready' && (
+            <Button variant="outline" className="w-full" onClick={() => onUpdateStatus(order.id, 'preparing')}>
+                <Undo2 className="mr-2 h-4 w-4" /> Move Back to Preparing
+            </Button>
+        )}
       </CardFooter>
     </Card>
   );
@@ -107,21 +112,7 @@ export function KitchenDisplay() {
              <div className="space-y-4 pr-4">
                {readyOrders.length > 0 ? (
                 readyOrders.map(order => (
-                   <Card key={order.id} className="opacity-80">
-                    <CardHeader className="py-3">
-                       <CardTitle className="flex justify-between items-center">
-                          <span className="font-headline text-lg">Table #{order.tableNumber}</span>
-                           <span className="text-xs font-normal text-muted-foreground">
-                            {formatDistanceToNow(order.createdAt, { addSuffix: true })}
-                          </span>
-                       </CardTitle>
-                    </CardHeader>
-                    <CardContent className="py-2">
-                       <p className="text-sm text-muted-foreground">
-                        {order.cart.map(i => i.quantity).reduce((a,b) => a+b, 0)} items
-                       </p>
-                    </CardContent>
-                  </Card>
+                   <OrderCard key={order.id} order={order} onUpdateStatus={updateOrderStatus} />
                 ))
               ) : (
                 <p className="text-muted-foreground text-center p-8">No recently completed orders.</p>
