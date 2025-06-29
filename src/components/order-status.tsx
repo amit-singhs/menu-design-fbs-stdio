@@ -40,10 +40,20 @@ export function OrderStatus({ order, onBackToMenu }: OrderStatusProps) {
             <Card className="w-full max-w-md rounded-2xl shadow-2xl bg-card/80 backdrop-blur-sm z-10">
                 <CardHeader className="text-center">
                     <CardTitle className="font-headline text-3xl sm:text-4xl font-bold text-primary">
-                        Order Status
+                       {!isComplete
+                            ? 'Order Status'
+                            : !feedbackSubmitted
+                            ? 'Share Your Experience'
+                            : 'Thank You!'
+                        }
                     </CardTitle>
                     <CardDescription className="text-lg">
-                        Table #{order.tableNumber}
+                        {!isComplete
+                            ? `Table #${order.tableNumber}`
+                            : !feedbackSubmitted
+                            ? 'Your feedback helps us get better.'
+                            : 'Your feedback has been received. We hope to see you again soon!'
+                        }
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 sm:p-8">
@@ -78,8 +88,6 @@ export function OrderStatus({ order, onBackToMenu }: OrderStatusProps) {
                     ) : (
                         <div className="text-center py-8 space-y-4 animate-in fade-in duration-500">
                             <SmilePlus className="h-16 w-16 text-green-500 mx-auto" />
-                            <h3 className="text-2xl font-bold">Thank You!</h3>
-                            <p className="text-muted-foreground">Your feedback has been received. We hope to see you again soon!</p>
                         </div>
                     )}
                 </CardContent>

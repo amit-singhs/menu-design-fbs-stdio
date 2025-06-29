@@ -99,10 +99,6 @@ export const FeedbackForm: FC<FeedbackFormProps> = ({ orderId, onFeedbackSubmitt
 
   return (
     <div className="w-full animate-in fade-in-50 slide-in-from-bottom-5 duration-500">
-        <CardHeader className="p-0 mb-6">
-            <CardTitle className="text-2xl font-bold">Share Your Experience</CardTitle>
-            <CardDescription>Your feedback helps us get better.</CardDescription>
-        </CardHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-6">
             {categories.map((category, index) => (
