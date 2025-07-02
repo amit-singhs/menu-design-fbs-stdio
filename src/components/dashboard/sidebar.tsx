@@ -11,6 +11,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { navItems } from "@/app/dashboard/data";
 import type { NavItem } from "@/app/dashboard/data";
@@ -83,11 +84,14 @@ export function DashboardSidebar() {
       collapsible="icon"
       className="group-data-[variant=sidebar]:border-r"
     >
-      <SidebarHeader className="hidden md:flex justify-start items-center gap-2">
-        <ChefHat className="w-6 h-6 transition-all group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8" />
-        <span className="font-semibold font-headline text-lg transition-all group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:-translate-x-4">
-          Bella Vista
-        </span>
+      <SidebarHeader className="hidden md:flex flex-row justify-between items-center">
+        <div className="flex items-center gap-2">
+          <ChefHat className="w-6 h-6 transition-all group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8" />
+          <span className="font-semibold font-headline text-lg transition-all group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:-translate-x-4">
+            Bella Vista
+          </span>
+        </div>
+        <SidebarTrigger />
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
