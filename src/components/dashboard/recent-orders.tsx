@@ -1,5 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,8 +16,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { recentOrders } from "@/app/dashboard/data";
+import { recentOrders, type Order } from "@/app/dashboard/data";
 import Link from "next/link";
+
+const statusBadgeVariants: Record<Order["status"], BadgeProps["variant"]> = {
+  Pending: "outline",
+  Processing: "secondary",
+  Completed: "default",
+  Cancelled: "destructive",
+};
+
 
 export function RecentOrders() {
   return (
@@ -41,7 +49,7 @@ export function RecentOrders() {
           <TableHeader>
             <TableRow>
               <TableHead>Customer</TableHead>
-              <TableHead className="hidden xl:table-column">Status</TableHead>
+              <TableHead className="hidden sm:table-cell">Status</TableHead>
               <TableHead className="hidden md:table-cell">Date</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               <TableHead>
@@ -58,8 +66,8 @@ export function RecentOrders() {
                     {order.email}
                   </div>
                 </TableCell>
-                <TableCell className="hidden xl:table-column">
-                  <Badge className="text-xs" variant={order.status === 'Completed' ? 'default' : 'secondary'}>
+                <TableCell className="hidden sm:table-cell">
+                  <Badge className="text-xs" variant={statusBadgeVariants[order.status]}>
                     {order.status}
                   </Badge>
                 </TableCell>
