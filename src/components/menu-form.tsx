@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -19,7 +20,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { generateDescriptionAction } from '@/app/actions';
-import { Loader2, PlusCircle, Save, Trash2, Wand2, ChevronsUpDown, Check } from 'lucide-react';
+import { Loader2, PlusCircle, Save, Trash2, Wand2, ChevronsUpDown, Check, Plus } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
@@ -211,7 +212,12 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                      <FormField
                         control={form.control}
                         name={`items.${index}.category`}
-                        render={({ field }) => (
+                        render={({ field }) => {
+                            const inputValue = field.value || '';
+                            const isNew = inputValue && !uniqueCategories.some(c => c.toLowerCase() === inputValue.toLowerCase());
+                            const filteredCategories = uniqueCategories.filter(c => c.toLowerCase().includes(inputValue.toLowerCase()));
+
+                            return (
                           <FormItem className="flex flex-col">
                             <FormLabel className="text-base">Category (Optional)</FormLabel>
                              <Popover open={categoryPopoverOpen[index]} onOpenChange={(isOpen) => setCategoryPopoverOpen(prev => ({...prev, [index]: isOpen}))}>
@@ -232,11 +238,28 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                                 </PopoverTrigger>
                                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                                   <Command shouldFilter={false}>
-                                    <CommandInput placeholder="Search or create category..." onInput={(e) => field.onChange(e.currentTarget.value)} />
+                                    <CommandInput 
+                                      placeholder="Search or create category..." 
+                                      value={inputValue}
+                                      onValueChange={field.onChange}
+                                    />
                                     <CommandList>
                                       <CommandEmpty>No category found.</CommandEmpty>
                                       <CommandGroup>
-                                        {uniqueCategories.map((category) => (
+                                        {isNew && (
+                                            <CommandItem
+                                                key={inputValue}
+                                                value={inputValue}
+                                                onSelect={() => {
+                                                form.setValue(`items.${index}.category`, inputValue)
+                                                setCategoryPopoverOpen(prev => ({...prev, [index]: false}))
+                                                }}
+                                            >
+                                                <Plus className="mr-2 h-4 w-4" />
+                                                {inputValue}
+                                            </CommandItem>
+                                        )}
+                                        {filteredCategories.map((category) => (
                                           <CommandItem
                                             value={category}
                                             key={category}
@@ -261,12 +284,20 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                               </Popover>
                             <FormMessage />
                           </FormItem>
-                        )}
+                        )}}
                       />
                        <FormField
                           control={form.control}
                           name={`items.${index}.subcategory`}
-                          render={({ field }) => (
+                          render={({ field }) => {
+                            const parentCategory = watchedItems[index]?.category || '';
+                            const subcategoriesForParent = uniqueSubcategories[parentCategory] || [];
+                            const inputValue = field.value || '';
+
+                            const isNew = inputValue && !subcategoriesForParent.some(sc => sc.toLowerCase() === inputValue.toLowerCase());
+                            const filteredSubcategories = subcategoriesForParent.filter(sc => sc.toLowerCase().includes(inputValue.toLowerCase()));
+
+                            return (
                             <FormItem className="flex flex-col">
                               <FormLabel className="text-base">Subcategory (Optional)</FormLabel>
                               <Popover open={subcategoryPopoverOpen[index]} onOpenChange={(isOpen) => setSubcategoryPopoverOpen(prev => ({...prev, [index]: isOpen}))}>
@@ -275,7 +306,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                                       <Button
                                         variant="outline"
                                         role="combobox"
-                                        disabled={!watchedItems[index]?.category}
+                                        disabled={!parentCategory}
                                         className={cn(
                                           "w-full justify-between h-12 text-base",
                                           !field.value && "text-muted-foreground"
@@ -288,11 +319,28 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                                   </PopoverTrigger>
                                   <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                                     <Command shouldFilter={false}>
-                                      <CommandInput placeholder="Search or create subcategory..." onInput={(e) => field.onChange(e.currentTarget.value)} />
+                                      <CommandInput 
+                                        placeholder="Search or create subcategory..." 
+                                        value={inputValue}
+                                        onValueChange={field.onChange}
+                                      />
                                       <CommandList>
                                         <CommandEmpty>No subcategory found.</CommandEmpty>
                                         <CommandGroup>
-                                          {(uniqueSubcategories[watchedItems[index]?.category || ''] || []).map((subcategory) => (
+                                          {isNew && (
+                                            <CommandItem
+                                                key={inputValue}
+                                                value={inputValue}
+                                                onSelect={() => {
+                                                    form.setValue(`items.${index}.subcategory`, inputValue)
+                                                    setSubcategoryPopoverOpen(prev => ({...prev, [index]: false}))
+                                                }}
+                                            >
+                                                <Plus className="mr-2 h-4 w-4" />
+                                                {inputValue}
+                                            </CommandItem>
+                                          )}
+                                          {filteredSubcategories.map((subcategory) => (
                                             <CommandItem
                                               value={subcategory}
                                               key={subcategory}
@@ -319,7 +367,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                                 </Popover>
                               <FormMessage />
                             </FormItem>
-                          )}
+                          )}}
                         />
                    </div>
                   <FormField
