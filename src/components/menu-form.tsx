@@ -20,7 +20,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { generateDescriptionAction } from '@/app/actions';
-import { Loader2, PlusCircle, Save, Trash2, Wand2, ChevronsUpDown, Check, Plus } from 'lucide-react';
+import { Loader2, PlusCircle, Save, Trash2, Wand2, ChevronsUpDown, Plus, CirclePlus, Check } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
@@ -218,74 +218,114 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                             const filteredCategories = uniqueCategories.filter(c => c.toLowerCase().includes(inputValue.toLowerCase()));
 
                             return (
-                          <FormItem className="flex flex-col">
-                            <FormLabel className="text-base">Category (Optional)</FormLabel>
-                             <Popover open={categoryPopoverOpen[index]} onOpenChange={(isOpen) => setCategoryPopoverOpen(prev => ({...prev, [index]: isOpen}))}>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant="outline"
-                                      role="combobox"
-                                      className={cn(
-                                        "w-full justify-between h-12 text-base",
-                                        !field.value && "text-muted-foreground"
-                                      )}
-                                      onFocus={() => setCategoryPopoverOpen(prev => ({...prev, [index]: true}))}
-                                    >
-                                      {field.value || "Select or create category"}
-                                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                  <Command shouldFilter={false}>
-                                    <CommandInput 
-                                      placeholder="Search or create category..." 
-                                      value={inputValue}
-                                      onValueChange={field.onChange}
-                                    />
-                                    <CommandList>
-                                      <CommandEmpty>No category found.</CommandEmpty>
-                                      <CommandGroup>
-                                        {isNew && (
-                                            <CommandItem
-                                                key={`create-${inputValue}`}
-                                                value={inputValue}
-                                                onSelect={() => {
-                                                  form.setValue(`items.${index}.category`, inputValue)
-                                                  setCategoryPopoverOpen(prev => ({...prev, [index]: false}))
-                                                }}
-                                            >
-                                                <Plus className="mr-2 h-4 w-4" />
-                                                <span>Create "{inputValue}"</span>
-                                            </CommandItem>
+                              <FormItem className="flex flex-col">
+                                <FormLabel className="text-base">
+                                  Category (Optional)
+                                </FormLabel>
+                                <Popover
+                                  open={categoryPopoverOpen[index]}
+                                  onOpenChange={(isOpen) =>
+                                    setCategoryPopoverOpen((prev) => ({
+                                      ...prev,
+                                      [index]: isOpen,
+                                    }))
+                                  }
+                                >
+                                  <PopoverTrigger asChild>
+                                    <FormControl>
+                                      <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        className={cn(
+                                          "w-full justify-between h-12 text-base",
+                                          !field.value &&
+                                            "text-muted-foreground"
                                         )}
-                                        {filteredCategories.map((category) => (
-                                          <CommandItem
-                                            value={category}
-                                            key={category}
-                                            onSelect={() => {
-                                              form.setValue(`items.${index}.category`, category)
-                                              setCategoryPopoverOpen(prev => ({...prev, [index]: false}))
-                                            }}
-                                          >
-                                            <Check
-                                              className={cn(
-                                                "mr-2 h-4 w-4",
-                                                category.toLowerCase() === field.value?.toLowerCase() ? "opacity-100" : "opacity-0"
-                                              )}
-                                            />
-                                            {category}
-                                          </CommandItem>
-                                        ))}
-                                      </CommandGroup>
-                                    </CommandList>
-                                  </Command>
-                                </PopoverContent>
-                              </Popover>
-                            <FormMessage />
-                          </FormItem>
-                        )}}
+                                        onFocus={() =>
+                                          setCategoryPopoverOpen((prev) => ({
+                                            ...prev,
+                                            [index]: true,
+                                          }))
+                                        }
+                                      >
+                                        {field.value ||
+                                          "Select or create category"}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                      </Button>
+                                    </FormControl>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <Command shouldFilter={false}>
+                                      <CommandInput
+                                        placeholder="Search or create category..."
+                                        value={inputValue}
+                                        onValueChange={field.onChange}
+                                      />
+                                      <CommandList>
+                                        <CommandEmpty>
+                                          No category found.
+                                        </CommandEmpty>
+                                        <CommandGroup>
+                                          {isNew && (
+                                            <CommandItem
+                                              key={`create-${inputValue}`}
+                                              value={inputValue}
+                                              onSelect={() => {
+                                                form.setValue(
+                                                  `items.${index}.category`,
+                                                  inputValue
+                                                );
+                                                setCategoryPopoverOpen(
+                                                  (prev) => ({
+                                                    ...prev,
+                                                    [index]: false,
+                                                  })
+                                                );
+                                              }}
+                                            >
+                                              <CirclePlus className="mr-2 h-4 w-4" />
+                                              <span>Create "{inputValue}"</span>
+                                            </CommandItem>
+                                          )}
+                                          {filteredCategories.map(
+                                            (category) => (
+                                              <CommandItem
+                                                value={category}
+                                                key={category}
+                                                onSelect={() => {
+                                                  form.setValue(
+                                                    `items.${index}.category`,
+                                                    category
+                                                  );
+                                                  setCategoryPopoverOpen(
+                                                    (prev) => ({
+                                                      ...prev,
+                                                      [index]: false,
+                                                    })
+                                                  );
+                                                }}
+                                              >
+                                                <CirclePlus
+                                                  className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    category.toLowerCase() ===
+                                                      field.value?.toLowerCase()
+                                                      ? "opacity-100"
+                                                      : "opacity-0"
+                                                  )}
+                                                />
+                                                {category}
+                                              </CommandItem>
+                                            )
+                                          )}
+                                        </CommandGroup>
+                                      </CommandList>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                              </FormItem>
+                            );}}
                       />
                        <FormField
                           control={form.control}
@@ -299,9 +339,19 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                             const filteredSubcategories = subcategoriesForParent.filter(sc => sc.toLowerCase().includes(inputValue.toLowerCase()));
 
                             return (
-                            <FormItem className="flex flex-col">
-                              <FormLabel className="text-base">Subcategory (Optional)</FormLabel>
-                              <Popover open={subcategoryPopoverOpen[index]} onOpenChange={(isOpen) => setSubcategoryPopoverOpen(prev => ({...prev, [index]: isOpen}))}>
+                              <FormItem className="flex flex-col">
+                                <FormLabel className="text-base">
+                                  Subcategory (Optional)
+                                </FormLabel>
+                                <Popover
+                                  open={subcategoryPopoverOpen[index]}
+                                  onOpenChange={(isOpen) =>
+                                    setSubcategoryPopoverOpen((prev) => ({
+                                      ...prev,
+                                      [index]: isOpen,
+                                    }))
+                                  }
+                                >
                                   <PopoverTrigger asChild>
                                     <FormControl>
                                       <Button
@@ -310,70 +360,98 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                                         disabled={!parentCategory}
                                         className={cn(
                                           "w-full justify-between h-12 text-base",
-                                          !field.value && "text-muted-foreground"
+                                          !field.value &&
+                                            "text-muted-foreground"
                                         )}
                                         onFocus={() => {
-                                            if (parentCategory) {
-                                                setSubcategoryPopoverOpen(prev => ({...prev, [index]: true}))
-                                            }
+                                          if (parentCategory) {
+                                            setSubcategoryPopoverOpen(
+                                              (prev) => ({
+                                                ...prev,
+                                                [index]: true,
+                                              })
+                                            );
+                                          }
                                         }}
                                       >
-                                        {field.value || "Select or create subcategory"}
+                                        {field.value ||
+                                          "Select or create subcategory"}
                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                       </Button>
                                     </FormControl>
                                   </PopoverTrigger>
                                   <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                                     <Command shouldFilter={false}>
-                                      <CommandInput 
-                                        placeholder="Search or create subcategory..." 
+                                      <CommandInput
+                                        placeholder="Search or create subcategory..."
                                         value={inputValue}
                                         onValueChange={field.onChange}
                                       />
                                       <CommandList>
-                                        <CommandEmpty>No subcategory found.</CommandEmpty>
+                                        <CommandEmpty>
+                                          No subcategory found.
+                                        </CommandEmpty>
                                         <CommandGroup>
                                           {isNew && (
                                             <CommandItem
-                                                key={`create-${inputValue}`}
-                                                value={inputValue}
-                                                onSelect={() => {
-                                                    form.setValue(`items.${index}.subcategory`, inputValue)
-                                                    setSubcategoryPopoverOpen(prev => ({...prev, [index]: false}))
-                                                }}
-                                            >
-                                                <Plus className="mr-2 h-4 w-4" />
-                                                <span>Create "{inputValue}"</span>
-                                            </CommandItem>
-                                          )}
-                                          {filteredSubcategories.map((subcategory) => (
-                                            <CommandItem
-                                              value={subcategory}
-                                              key={subcategory}
+                                              key={`create-${inputValue}`}
+                                              value={inputValue}
                                               onSelect={() => {
-                                                form.setValue(`items.${index}.subcategory`, subcategory)
-                                                setSubcategoryPopoverOpen(prev => ({...prev, [index]: false}))
+                                                form.setValue(
+                                                  `items.${index}.subcategory`,
+                                                  inputValue
+                                                );
+                                                setSubcategoryPopoverOpen(
+                                                  (prev) => ({
+                                                    ...prev,
+                                                    [index]: false,
+                                                  })
+                                                );
                                               }}
                                             >
-                                              <Check
-                                                className={cn(
-                                                  "mr-2 h-4 w-4",
-                                                  subcategory.toLowerCase() === field.value?.toLowerCase()
-                                                    ? "opacity-100"
-                                                    : "opacity-0"
-                                                )}
-                                              />
-                                              {subcategory}
+                                              <CirclePlus className="mr-2 h-4 w-4" />
+                                              <span>Create "{inputValue}"</span>
                                             </CommandItem>
-                                          ))}
+                                          )}
+                                          {filteredSubcategories.map(
+                                            (subcategory) => (
+                                              <CommandItem
+                                                value={subcategory}
+                                                key={subcategory}
+                                                onSelect={() => {
+                                                  form.setValue(
+                                                    `items.${index}.subcategory`,
+                                                    subcategory
+                                                  );
+                                                  setSubcategoryPopoverOpen(
+                                                    (prev) => ({
+                                                      ...prev,
+                                                      [index]: false,
+                                                    })
+                                                  );
+                                                }}
+                                              >
+                                                <CirclePlus
+                                                  className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    subcategory.toLowerCase() ===
+                                                      field.value?.toLowerCase()
+                                                      ? "opacity-100"
+                                                      : "opacity-100"
+                                                  )}
+                                                />
+                                                {subcategory}
+                                              </CommandItem>
+                                            )
+                                          )}
                                         </CommandGroup>
                                       </CommandList>
                                     </Command>
                                   </PopoverContent>
                                 </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}}
+                                <FormMessage />
+                              </FormItem>
+                            );}}
                         />
                    </div>
                   <FormField
