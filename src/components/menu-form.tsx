@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useState, useMemo } from 'react';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -19,12 +19,17 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { generateDescriptionAction } from '@/app/actions';
-import { Loader2, PlusCircle, Save, Trash2, Wand2 } from 'lucide-react';
+import { Loader2, PlusCircle, Save, Trash2, Wand2, ChevronsUpDown, Check } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 
 export const menuItemSchema = z.object({
   dishName: z.string().min(1, 'Dish name is required.'),
   price: z.coerce.number().positive('Price must be a positive number.'),
   description: z.string().min(10, 'Description must be at least 10 characters.'),
+  category: z.string().optional(),
+  subcategory: z.string().optional(),
 });
 
 const menuFormSchema = z.object({
@@ -41,11 +46,14 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [generatingStates, setGeneratingStates] = useState<{ [key: number]: boolean }>({});
+  
+  const [categoryPopoverOpen, setCategoryPopoverOpen] = useState<Record<number, boolean>>({});
+  const [subcategoryPopoverOpen, setSubcategoryPopoverOpen] = useState<Record<number, boolean>>({});
 
   const form = useForm<MenuFormValues>({
     resolver: zodResolver(menuFormSchema),
     defaultValues: {
-      items: [{ dishName: '', price: 0, description: '' }],
+      items: [{ dishName: '', price: 0, description: '', category: '', subcategory: '' }],
     },
     mode: 'onBlur',
   });
@@ -54,6 +62,30 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
     control: form.control,
     name: 'items',
   });
+
+  const watchedItems = useWatch({ control: form.control, name: 'items' });
+
+  const uniqueCategories = useMemo(() => {
+    const categories = watchedItems
+      .map((item) => item.category)
+      .filter((c): c is string => !!c);
+    return Array.from(new Set(categories));
+  }, [watchedItems]);
+
+  const uniqueSubcategories = useMemo(() => {
+    const subcategories: Record<string, string[]> = {};
+    watchedItems.forEach((item) => {
+      if (item.category && item.subcategory) {
+        if (!subcategories[item.category]) {
+          subcategories[item.category] = [];
+        }
+        if (!subcategories[item.category].includes(item.subcategory)) {
+          subcategories[item.category].push(item.subcategory);
+        }
+      }
+    });
+    return subcategories;
+  }, [watchedItems]);
 
   const handleGenerateDescription = async (index: number) => {
     setGeneratingStates(prev => ({ ...prev, [index]: true }));
@@ -175,6 +207,121 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                       )}
                     />
                   </div>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <FormField
+                        control={form.control}
+                        name={`items.${index}.category`}
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel className="text-base">Category (Optional)</FormLabel>
+                             <Popover open={categoryPopoverOpen[index]} onOpenChange={(isOpen) => setCategoryPopoverOpen(prev => ({...prev, [index]: isOpen}))}>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      className={cn(
+                                        "w-full justify-between h-12 text-base",
+                                        !field.value && "text-muted-foreground"
+                                      )}
+                                    >
+                                      {field.value || "Select or create category"}
+                                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                  <Command shouldFilter={false}>
+                                    <CommandInput placeholder="Search or create category..." onInput={(e) => field.onChange(e.currentTarget.value)} />
+                                    <CommandList>
+                                      <CommandEmpty>No category found.</CommandEmpty>
+                                      <CommandGroup>
+                                        {uniqueCategories.map((category) => (
+                                          <CommandItem
+                                            value={category}
+                                            key={category}
+                                            onSelect={() => {
+                                              form.setValue(`items.${index}.category`, category)
+                                              setCategoryPopoverOpen(prev => ({...prev, [index]: false}))
+                                            }}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                "mr-2 h-4 w-4",
+                                                category === field.value ? "opacity-100" : "opacity-0"
+                                              )}
+                                            />
+                                            {category}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                       <FormField
+                          control={form.control}
+                          name={`items.${index}.subcategory`}
+                          render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                              <FormLabel className="text-base">Subcategory (Optional)</FormLabel>
+                              <Popover open={subcategoryPopoverOpen[index]} onOpenChange={(isOpen) => setSubcategoryPopoverOpen(prev => ({...prev, [index]: isOpen}))}>
+                                  <PopoverTrigger asChild>
+                                    <FormControl>
+                                      <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        disabled={!watchedItems[index]?.category}
+                                        className={cn(
+                                          "w-full justify-between h-12 text-base",
+                                          !field.value && "text-muted-foreground"
+                                        )}
+                                      >
+                                        {field.value || "Select or create subcategory"}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                      </Button>
+                                    </FormControl>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <Command shouldFilter={false}>
+                                      <CommandInput placeholder="Search or create subcategory..." onInput={(e) => field.onChange(e.currentTarget.value)} />
+                                      <CommandList>
+                                        <CommandEmpty>No subcategory found.</CommandEmpty>
+                                        <CommandGroup>
+                                          {(uniqueSubcategories[watchedItems[index]?.category || ''] || []).map((subcategory) => (
+                                            <CommandItem
+                                              value={subcategory}
+                                              key={subcategory}
+                                              onSelect={() => {
+                                                form.setValue(`items.${index}.subcategory`, subcategory)
+                                                setSubcategoryPopoverOpen(prev => ({...prev, [index]: false}))
+                                              }}
+                                            >
+                                              <Check
+                                                className={cn(
+                                                  "mr-2 h-4 w-4",
+                                                  subcategory === field.value
+                                                    ? "opacity-100"
+                                                    : "opacity-0"
+                                                )}
+                                              />
+                                              {subcategory}
+                                            </CommandItem>
+                                          ))}
+                                        </CommandGroup>
+                                      </CommandList>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                   </div>
                   <FormField
                     control={form.control}
                     name={`items.${index}.description`}
@@ -222,7 +369,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
               variant="outline"
               size="lg"
               className="border-2 border-dashed rounded-lg py-6 px-8 text-lg"
-              onClick={() => append({ dishName: '', price: 0, description: '' })}
+              onClick={() => append({ dishName: '', price: 0, description: '', category: '', subcategory: '' })}
             >
               <PlusCircle className="mr-2 h-5 w-5" />
               Add Another Item

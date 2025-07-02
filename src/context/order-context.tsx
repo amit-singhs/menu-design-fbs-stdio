@@ -39,8 +39,8 @@ const MOCK_ORDERS: Order[] = [
   {
     id: 'mock-1',
     cart: [
-      { dishName: 'Spaghetti Carbonara', price: 15.99, description: 'Classic Italian pasta.', quantity: 1, specialInstructions: 'Extra cheese please' },
-      { dishName: 'Garlic Bread', price: 5.99, description: 'Toasted with garlic butter.', quantity: 2 },
+      { dishName: 'Spaghetti Carbonara', price: 15.99, description: 'Classic Italian pasta.', quantity: 1, specialInstructions: 'Extra cheese please', category: 'Main Courses', subcategory: 'Pasta Dishes' },
+      { dishName: 'Garlic Bread', price: 5.99, description: 'Toasted with garlic butter.', quantity: 2, category: 'Appetizers' },
     ],
     tableNumber: '5',
     status: 'placed',
@@ -51,7 +51,7 @@ const MOCK_ORDERS: Order[] = [
   {
     id: 'mock-2',
     cart: [
-      { dishName: 'Margherita Pizza', price: 12.99, description: 'Tomato, mozzarella, basil.', quantity: 1 },
+      { dishName: 'Margherita Pizza', price: 12.99, description: 'Tomato, mozzarella, basil.', quantity: 1, category: 'Main Courses', subcategory: 'Pizza' },
     ],
     tableNumber: '12',
     status: 'preparing',
@@ -61,8 +61,8 @@ const MOCK_ORDERS: Order[] = [
     {
     id: 'mock-3',
     cart: [
-      { dishName: 'Caesar Salad', price: 10.50, description: 'Fresh and crispy.', quantity: 1, specialInstructions: 'No croutons.' },
-      { dishName: 'Iced Tea', price: 3.00, description: 'Refreshing drink.', quantity: 1 },
+      { dishName: 'Caesar Salad', price: 10.50, description: 'Fresh and crispy.', quantity: 1, specialInstructions: 'No croutons.', category: 'Appetizers', subcategory: 'Salads' },
+      { dishName: 'Iced Tea', price: 3.00, description: 'Refreshing drink.', quantity: 1, category: 'Drinks' },
     ],
     tableNumber: '8',
     status: 'preparing',
@@ -72,7 +72,7 @@ const MOCK_ORDERS: Order[] = [
   {
     id: 'mock-4',
     cart: [
-      { dishName: 'Cheeseburger', price: 14.00, description: 'With fries.', quantity: 1 },
+      { dishName: 'Cheeseburger', price: 14.00, description: 'With fries.', quantity: 1, category: 'Main Courses', subcategory: 'Burgers & Sandwiches' },
     ],
     tableNumber: '3',
     status: 'ready',
@@ -83,7 +83,7 @@ const MOCK_ORDERS: Order[] = [
     {
     id: 'mock-5',
     cart: [
-      { dishName: 'Steak Frites', price: 25.00, description: 'Juicy steak with crispy fries.', quantity: 1 },
+      { dishName: 'Ribeye Steak', price: 25.00, description: 'Juicy steak with crispy fries.', quantity: 1, category: 'Main Courses', subcategory: 'Grilled Meats' },
     ],
     tableNumber: '7',
     status: 'ready',

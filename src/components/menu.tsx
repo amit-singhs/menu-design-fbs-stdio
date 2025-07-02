@@ -1,7 +1,7 @@
 'use client';
 
 import type { z } from 'zod';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardTitle, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,7 @@ import { useState, useMemo } from 'react';
 import { Utensils, ShoppingCart, Plus, Minus, Trash2, Loader2, Info } from 'lucide-react';
 import type { menuItemSchema } from '@/components/menu-form';
 import type { CartItem as CartItemType } from '@/context/order-context';
+import { Separator } from './ui/separator';
 
 export type MenuItem = z.infer<typeof menuItemSchema>;
 export type CartItem = CartItemType;
@@ -132,6 +133,25 @@ export function Menu({ items, onOrderPlaced }: MenuProps) {
     setIsPlacingOrder(false);
     setIsSheetOpen(false);
   };
+
+  const groupedItems = useMemo(() => {
+    const groups: Record<string, Record<string, MenuItem[]>> = {};
+
+    items.forEach(item => {
+      const category = item.category || 'Miscellaneous';
+      const subcategory = item.subcategory || 'General';
+
+      if (!groups[category]) {
+        groups[category] = {};
+      }
+      if (!groups[category][subcategory]) {
+        groups[category][subcategory] = [];
+      }
+      groups[category][subcategory].push(item);
+    });
+
+    return groups;
+  }, [items]);
 
   return (
     <div className="min-h-screen w-full bg-muted/30 dark:bg-black">
@@ -278,62 +298,77 @@ export function Menu({ items, onOrderPlaced }: MenuProps) {
           </Sheet>
         </div>
       </header>
-      <main className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 pb-32">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-8">
-          {items.map((item, index) => {
-            const cartItem = getCartItem(item.dishName);
-            return (
-              <Card
-                key={index}
-                className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 border-none bg-card animate-in fade-in slide-in-from-bottom-4 flex flex-col"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <CardContent className="p-6 space-y-4 flex flex-col flex-grow">
-                  <div className="flex justify-between items-start gap-4">
-                    <h3 className="text-2xl font-bold font-headline text-foreground leading-tight">
-                      {item.dishName}
-                    </h3>
-                    <div className="text-lg font-bold text-primary whitespace-nowrap pt-px font-mono">
-                      ${item.price.toFixed(2)}
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed flex-grow">
-                    {item.description}
-                  </p>
-                  <div className="flex items-center justify-center pt-2">
-                    {!cartItem ? (
-                      <Button className="w-full h-12 text-base" onClick={() => handleAddToCart(item)}>
-                        <Plus className="mr-2 h-5 w-5" /> Add to Order
-                      </Button>
-                    ) : (
-                      <div className="flex items-center justify-between w-full">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="rounded-full h-12 w-12"
-                          onClick={() => handleRemoveFromCart(item.dishName)}
-                        >
-                          <Minus className="h-6 w-6" />
-                        </Button>
-                        <span className="text-2xl font-bold w-12 text-center">
-                          {cartItem.quantity}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="rounded-full h-12 w-12"
-                          onClick={() => handleAddToCart(item)}
-                        >
-                          <Plus className="h-6 w-6" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+      <main className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 pb-32 space-y-12">
+        {Object.entries(groupedItems).map(([category, subcategories], categoryIndex) => (
+          <div key={category} className="space-y-8 animate-in fade-in-50" style={{animationDelay: `${categoryIndex * 150}ms`}}>
+            <div className="text-center">
+              <h2 className="text-4xl font-extrabold font-headline tracking-tight text-primary">{category}</h2>
+              <Separator className="mt-4 w-24 mx-auto" />
+            </div>
+            {Object.entries(subcategories).map(([subcategory, items]) => (
+              <div key={subcategory} className="space-y-6">
+                {subcategory !== 'General' && (
+                  <h3 className="text-2xl font-bold font-headline text-foreground/80">{subcategory}</h3>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-8">
+                  {items.map((item, index) => {
+                    const cartItem = getCartItem(item.dishName);
+                    return (
+                      <Card
+                        key={index}
+                        className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 border-none bg-card animate-in fade-in slide-in-from-bottom-4 flex flex-col"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <CardContent className="p-6 space-y-4 flex flex-col flex-grow">
+                          <div className="flex justify-between items-start gap-4">
+                            <h3 className="text-2xl font-bold font-headline text-foreground leading-tight">
+                              {item.dishName}
+                            </h3>
+                            <div className="text-lg font-bold text-primary whitespace-nowrap pt-px font-mono">
+                              ${item.price.toFixed(2)}
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground leading-relaxed flex-grow">
+                            {item.description}
+                          </p>
+                          <div className="flex items-center justify-center pt-2">
+                            {!cartItem ? (
+                              <Button className="w-full h-12 text-base" onClick={() => handleAddToCart(item)}>
+                                <Plus className="mr-2 h-5 w-5" /> Add to Order
+                              </Button>
+                            ) : (
+                              <div className="flex items-center justify-between w-full">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="rounded-full h-12 w-12"
+                                  onClick={() => handleRemoveFromCart(item.dishName)}
+                                >
+                                  <Minus className="h-6 w-6" />
+                                </Button>
+                                <span className="text-2xl font-bold w-12 text-center">
+                                  {cartItem.quantity}
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="rounded-full h-12 w-12"
+                                  onClick={() => handleAddToCart(item)}
+                                >
+                                  <Plus className="h-6 w-6" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
       </main>
     </div>
   );
