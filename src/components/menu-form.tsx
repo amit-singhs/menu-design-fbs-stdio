@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -20,7 +19,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { generateDescriptionAction } from '@/app/actions';
-import { Loader2, PlusCircle, Save, Trash2, Wand2, ChevronsUpDown, Plus, CirclePlus, Check } from 'lucide-react';
+import { Loader2, PlusCircle, Save, Trash2, Wand2, ChevronsUpDown, CirclePlus } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
@@ -437,7 +436,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                                                     subcategory.toLowerCase() ===
                                                       field.value?.toLowerCase()
                                                       ? "opacity-100"
-                                                      : "opacity-100"
+                                                      : "opacity-0"
                                                   )}
                                                 />
                                                 {subcategory}
