@@ -12,6 +12,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { navItems } from "@/app/dashboard/data";
 import type { NavItem } from "@/app/dashboard/data";
@@ -22,18 +23,40 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import React, { useState, useEffect } from "react";
 
 const SidebarNavItem = ({ item }: { item: NavItem }) => {
   const pathname = usePathname();
-  const isActive = pathname === item.href;
+  const { state, setOpen } = useSidebar();
+  const isChildActive = item.children?.some(
+    (child) => pathname === child.href
+  );
+
+  const [isOpen, setIsOpen] = useState(isChildActive);
+
+  useEffect(() => {
+    if (state === "collapsed") {
+      setIsOpen(false);
+    }
+  }, [state]);
+
+  useEffect(() => {
+    setIsOpen(isChildActive);
+  }, [isChildActive]);
 
   if (item.children) {
-    const isChildActive = item.children.some(
-      (child) => pathname === child.href
-    );
-
     return (
-      <Collapsible defaultOpen={isChildActive}>
+      <Collapsible
+        open={isOpen}
+        onOpenChange={(openState) => {
+          if (state === "collapsed") {
+            setOpen(true);
+            setIsOpen(true);
+          } else {
+            setIsOpen(openState);
+          }
+        }}
+      >
         <CollapsibleTrigger asChild>
           <SidebarMenuButton
             variant="ghost"
@@ -45,7 +68,7 @@ const SidebarNavItem = ({ item }: { item: NavItem }) => {
             <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 [&[data-state=open]]:rotate-90" />
           </SidebarMenuButton>
         </CollapsibleTrigger>
-        <CollapsibleContent className="pl-6">
+        <CollapsibleContent className="pl-6 group-data-[collapsible=icon]:hidden">
           <SidebarMenu>
             {item.children.map((child) => (
               <SidebarMenuItem key={child.href}>
@@ -69,7 +92,15 @@ const SidebarNavItem = ({ item }: { item: NavItem }) => {
 
   return (
     <Link href={item.href}>
-      <SidebarMenuButton variant="ghost" isActive={isActive}>
+      <SidebarMenuButton
+        variant="ghost"
+        isActive={pathname === item.href}
+        onClick={() => {
+          if (state === "collapsed") {
+            setOpen(true);
+          }
+        }}
+      >
         <item.icon className="h-4 w-4" />
         <span>{item.title}</span>
       </SidebarMenuButton>
@@ -85,9 +116,9 @@ export function DashboardSidebar() {
       className="group-data-[variant=sidebar]:border-r"
     >
       <SidebarHeader className="hidden md:flex flex-row justify-between items-center">
-        <div className="flex items-center gap-2">
-          <ChefHat className="w-6 h-6 transition-all group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8" />
-          <span className="font-semibold font-headline text-lg transition-all group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:-translate-x-4">
+        <div className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
+          <ChefHat className="w-6 h-6 transition-all" />
+          <span className="font-semibold font-headline text-lg transition-all">
             Bella Vista
           </span>
         </div>
