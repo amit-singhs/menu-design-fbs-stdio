@@ -248,15 +248,15 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                                       <CommandGroup>
                                         {isNew && (
                                             <CommandItem
-                                                key={inputValue}
+                                                key={`create-${inputValue}`}
                                                 value={inputValue}
                                                 onSelect={() => {
-                                                form.setValue(`items.${index}.category`, inputValue)
-                                                setCategoryPopoverOpen(prev => ({...prev, [index]: false}))
+                                                  form.setValue(`items.${index}.category`, inputValue)
+                                                  setCategoryPopoverOpen(prev => ({...prev, [index]: false}))
                                                 }}
                                             >
                                                 <Plus className="mr-2 h-4 w-4" />
-                                                {inputValue}
+                                                <span>Create "{inputValue}"</span>
                                             </CommandItem>
                                         )}
                                         {filteredCategories.map((category) => (
@@ -329,7 +329,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                                         <CommandGroup>
                                           {isNew && (
                                             <CommandItem
-                                                key={inputValue}
+                                                key={`create-${inputValue}`}
                                                 value={inputValue}
                                                 onSelect={() => {
                                                     form.setValue(`items.${index}.subcategory`, inputValue)
@@ -337,7 +337,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                                                 }}
                                             >
                                                 <Plus className="mr-2 h-4 w-4" />
-                                                {inputValue}
+                                                <span>Create "{inputValue}"</span>
                                             </CommandItem>
                                           )}
                                           {filteredSubcategories.map((subcategory) => (
