@@ -230,6 +230,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                                         "w-full justify-between h-12 text-base",
                                         !field.value && "text-muted-foreground"
                                       )}
+                                      onFocus={() => setCategoryPopoverOpen(prev => ({...prev, [index]: true}))}
                                     >
                                       {field.value || "Select or create category"}
                                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -271,7 +272,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                                             <Check
                                               className={cn(
                                                 "mr-2 h-4 w-4",
-                                                category === field.value ? "opacity-100" : "opacity-0"
+                                                category.toLowerCase() === field.value?.toLowerCase() ? "opacity-100" : "opacity-0"
                                               )}
                                             />
                                             {category}
@@ -311,6 +312,11 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                                           "w-full justify-between h-12 text-base",
                                           !field.value && "text-muted-foreground"
                                         )}
+                                        onFocus={() => {
+                                            if (parentCategory) {
+                                                setSubcategoryPopoverOpen(prev => ({...prev, [index]: true}))
+                                            }
+                                        }}
                                       >
                                         {field.value || "Select or create subcategory"}
                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -352,7 +358,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                                               <Check
                                                 className={cn(
                                                   "mr-2 h-4 w-4",
-                                                  subcategory === field.value
+                                                  subcategory.toLowerCase() === field.value?.toLowerCase()
                                                     ? "opacity-100"
                                                     : "opacity-0"
                                                 )}
