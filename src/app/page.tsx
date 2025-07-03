@@ -6,10 +6,9 @@ import { Button } from '@/components/ui/button';
 import { MenuForm, type MenuFormValues } from '@/components/menu-form';
 import { Menu } from '@/components/menu';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { UtensilsCrossed, LogIn } from 'lucide-react';
+import { UtensilsCrossed } from 'lucide-react';
 import { useOrders } from '@/context/order-context';
 import type { CartItem } from '@/context/order-context';
-import Link from 'next/link';
 
 type PlacedOrderInfo = {
   cart: CartItem[];
@@ -44,14 +43,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen w-full bg-background">
-        <nav className="absolute top-0 right-0 p-4 z-20">
-            <Button asChild variant="outline">
-                <Link href="/auth">
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Restaurant Login
-                </Link>
-            </Button>
-        </nav>
       <main className="flex min-h-screen flex-col items-center justify-center bg-cover bg-center p-4">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background -z-0" />
         <Card className="w-full max-w-md animate-in fade-in zoom-in-95 duration-500 rounded-2xl shadow-2xl bg-card/80 backdrop-blur-sm z-10">
