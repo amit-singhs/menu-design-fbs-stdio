@@ -1,0 +1,29 @@
+'use client';
+
+import { AuthForm } from '@/components/auth/auth-form';
+import Image from 'next/image';
+
+export default function AuthenticationPage() {
+  return (
+    <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
+       <div className="hidden bg-primary/10 lg:flex items-center justify-center relative">
+         <Image
+          src="https://placehold.co/1200x1800.png"
+          alt="A vibrant dish from a restaurant menu"
+          width="1200"
+          height="1800"
+          data-ai-hint="vibrant dish"
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/50 to-transparent" />
+        <div className="absolute bottom-10 left-10 text-background p-4">
+            <h1 className="font-headline text-5xl font-bold">MenuStart</h1>
+            <p className="text-xl mt-2 max-w-md">The simplest way to bring your restaurant's menu online.</p>
+        </div>
+      </div>
+      <div className="flex items-center justify-center p-6 sm:p-12">
+        <AuthForm />
+      </div>
+    </div>
+  );
+}
