@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 export default function AuthenticationPage() {
   return (
-    <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
+    <div className="w-full h-screen overflow-hidden lg:grid lg:grid-cols-2">
        <div className="hidden bg-primary/10 lg:flex items-center justify-center relative">
          <Image
           src="https://placehold.co/1200x1800.png"
@@ -21,7 +21,7 @@ export default function AuthenticationPage() {
             <p className="text-xl mt-2 max-w-md">The simplest way to bring your restaurant's menu online.</p>
         </div>
       </div>
-      <div className="flex items-center justify-center p-6 sm:p-12">
+      <div className="flex items-center justify-center p-6 sm:p-12 h-full overflow-y-auto">
         <AuthForm />
       </div>
     </div>
