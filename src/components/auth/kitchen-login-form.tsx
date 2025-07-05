@@ -64,7 +64,7 @@ export function KitchenLoginForm() {
                 <ChefHat className="h-10 w-10" />
               </div>
             </div>
-            <CardTitle className="font-headline text-3xl">Kitchen Display</CardTitle>
+            <CardTitle className="font-headline text-3xl">Kitchen Staff Login</CardTitle>
             <CardDescription>Enter your credentials to access the order queue.</CardDescription>
         </CardHeader>
         <CardContent>
