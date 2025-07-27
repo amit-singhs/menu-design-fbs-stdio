@@ -127,7 +127,7 @@ export function DashboardSidebar() {
       <SidebarContent>
         <SidebarMenu>
           {navItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
+            <SidebarMenuItem key={item.title}>
               <SidebarNavItem item={item} />
             </SidebarMenuItem>
           ))}
