@@ -1,3 +1,5 @@
+'use client';
+
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line, LineChart } from "recharts";
 import {
   Card,

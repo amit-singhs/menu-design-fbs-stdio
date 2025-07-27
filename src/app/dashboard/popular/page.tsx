@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Card,
   CardContent,
@@ -26,7 +28,7 @@ const chartConfig = {
     label: "Sales",
   },
   ...popularItemsData.reduce((acc, item) => {
-    acc[item.name] = { label: item.name };
+    acc[item.name] = { label: item.name, color: item.fill };
     return acc;
   }, {}),
 };
@@ -62,8 +64,8 @@ export default function PopularItemsPage() {
                                 innerRadius={60}
                                 strokeWidth={5}
                                 >
-                                {popularItemsData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                {popularItemsData.map((entry) => (
+                                    <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                                 ))}
                                 </Pie>
                             </PieChart>
