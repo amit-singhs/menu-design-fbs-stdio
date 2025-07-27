@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { FileDown, Link as LinkIcon, PlusCircle } from "lucide-react";
+import { FileDown, PlusCircle } from "lucide-react";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { SalesChart } from "@/components/dashboard/sales-chart";
 import { PopularItemsChart } from "@/components/dashboard/popular-items-chart";
@@ -13,11 +14,15 @@ export default function DashboardPage() {
           Dashboard
         </h1>
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <Button className="w-full md:w-auto">
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Menu Item
+          <Button asChild className="w-full md:w-auto">
+            <Link href="/dashboard/menu/add">
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Menu Item
+            </Link>
           </Button>
-          <Button variant="outline" className="w-full md:w-auto">
-            <LinkIcon className="mr-2 h-4 w-4" /> Generate QR Code
+          <Button asChild variant="outline" className="w-full md:w-auto">
+             <Link href="/dashboard/qr-codes">
+                <PlusCircle className="mr-2 h-4 w-4" /> Generate QR Code
+            </Link>
           </Button>
           <Button variant="outline" className="w-full md:w-auto">
             <FileDown className="mr-2 h-4 w-4" /> Download Report
@@ -27,11 +32,11 @@ export default function DashboardPage() {
 
       <StatsCards />
       
-      <div className="grid gap-6 md:gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      <div className="grid gap-6 md:gap-8 lg:grid-cols-5">
+        <div className="lg:col-span-3">
             <SalesChart />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-2">
             <PopularItemsChart />
         </div>
       </div>

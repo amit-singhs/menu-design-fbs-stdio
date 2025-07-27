@@ -38,7 +38,7 @@ export function PopularItemsChart() {
       <CardContent className="flex-1 pb-0">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[300px]"
+          className="mx-auto aspect-square max-h-[200px]"
         >
           <PieChart>
             <ChartTooltip
@@ -49,8 +49,8 @@ export function PopularItemsChart() {
               data={popularItemsData}
               dataKey="sales"
               nameKey="name"
-              innerRadius={60}
-              strokeWidth={5}
+              innerRadius={50}
+              strokeWidth={4}
             >
               {popularItemsData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -59,7 +59,7 @@ export function PopularItemsChart() {
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
+      <CardFooter className="flex-col gap-2 text-sm pt-4">
         <div className="flex items-center gap-2 font-medium leading-none">
           Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
         </div>
