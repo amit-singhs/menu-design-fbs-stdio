@@ -11,12 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FileDown, PlusCircle, View } from 'lucide-react';
+import { FileDown, PlusCircle, View, QrCode } from 'lucide-react';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { SalesChart } from '@/components/dashboard/sales-chart';
 import { PopularItemsChart } from '@/components/dashboard/popular-items-chart';
 import { RecentOrders } from '@/components/dashboard/recent-orders';
 import { cn } from '@/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 type VisibleComponents = {
   stats: boolean;
@@ -110,8 +111,30 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
-
-      <RecentOrders />
+      
+       <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
+         <RecentOrders />
+         <div className="grid gap-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Quick Actions</CardTitle>
+                    <CardDescription>Perform common tasks with a single click.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4">
+                    <Button asChild variant="outline" size="lg">
+                        <Link href="/dashboard/menu/edit">
+                         <PlusCircle className="mr-2 h-4 w-4" /> Add Menu Item
+                        </Link>
+                    </Button>
+                     <Button asChild variant="outline" size="lg">
+                        <Link href="/dashboard/qr-codes">
+                          <QrCode className="mr-2 h-4 w-4" /> Generate QR Code
+                        </Link>
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
+       </div>
     </div>
   );
 }

@@ -1,4 +1,6 @@
-import { ArrowUpRight } from "lucide-react";
+'use client'
+
+import { ArrowUpRight, Search } from "lucide-react";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +22,7 @@ import { recentOrders, type Order } from "@/app/dashboard/data";
 import Link from "next/link";
 import { useState } from "react";
 import { OrderDetailsDialog } from "./order-details-dialog";
+import { Input } from "../ui/input";
 
 const statusBadgeVariants: Record<Order["status"], BadgeProps["variant"]> = {
   Pending: "outline",
@@ -34,20 +37,30 @@ export function RecentOrders() {
 
   return (
     <>
-    <Card>
-      <CardHeader className="flex flex-row items-center">
-        <div className="grid gap-2">
-          <CardTitle>Recent Orders</CardTitle>
-          <CardDescription>
-            You have {recentOrders.length} recent orders.
-          </CardDescription>
+    <Card className="lg:col-span-1 h-full">
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="grid gap-2">
+            <CardTitle>Recent Orders</CardTitle>
+            <CardDescription>
+                You have {recentOrders.length} recent orders.
+            </CardDescription>
+            </div>
+             <Button asChild size="sm" className="ml-auto gap-1 w-full sm:w-auto">
+                <Link href="/dashboard/orders/history">
+                    View All
+                    <ArrowUpRight className="h-4 w-4" />
+                </Link>
+            </Button>
         </div>
-        <Button asChild size="sm" className="ml-auto gap-1">
-          <Link href="/dashboard/orders/history">
-            View All
-            <ArrowUpRight className="h-4 w-4" />
-          </Link>
-        </Button>
+         <div className="relative mt-4">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search orders..."
+              className="pl-8 w-full"
+            />
+          </div>
       </CardHeader>
       <CardContent>
         <Table>
@@ -55,7 +68,6 @@ export function RecentOrders() {
             <TableRow>
               <TableHead>Customer</TableHead>
               <TableHead className="hidden sm:table-cell">Status</TableHead>
-              <TableHead className="hidden md:table-cell">Date</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
@@ -76,7 +88,6 @@ export function RecentOrders() {
                     {order.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="hidden md:table-cell">{order.date}</TableCell>
                 <TableCell className="text-right">${order.amount.toFixed(2)}</TableCell>
                 <TableCell className="text-right">
                     <Button variant="outline" size="sm" onClick={() => setSelectedOrder(order)}>View Details</Button>

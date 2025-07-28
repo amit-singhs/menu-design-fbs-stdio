@@ -182,20 +182,20 @@ export const statCards: StatCard[] = [
 ];
 
 export const recentOrders: Order[] = [
-    { id: "ORD001", customer: "Liam Johnson", email: "liam@example.com", amount: 38.50, status: "Completed", date: "2023-06-23", type: "Dine-In", tableNumber: '5', items: [{dishName: 'T-Bone Steak', price: 25.50, quantity: 1}, {dishName: 'Coke', price: 3.00, quantity: 1}]},
-    { id: "ORD002", customer: "Olivia Smith", email: "olivia@example.com", amount: 25.00, status: "Processing", date: "2023-06-24", type: "Takeout", tableNumber: 'N/A', items: [{dishName: 'Cheeseburger', price: 15.00, quantity: 1}, {dishName: 'Fries', price: 5.00, quantity: 1}]},
-    { id: "ORD003", customer: "Noah Williams", email: "noah@example.com", amount: 45.00, status: "Completed", date: "2023-06-25", type: "Delivery", tableNumber: 'N/A', items: [{dishName: 'Pepperoni Pizza', price: 20.00, quantity: 1}, {dishName: 'Wings', price: 15.00, quantity: 1}]},
+    { id: "ORD001", customer: "Liam Johnson", email: "liam@example.com", amount: 38.50, status: "Completed", date: "2023-06-23", type: "Dine-In", tableNumber: '5', specialInstructions: "Please ensure the steak is medium-rare.", items: [{dishName: 'T-Bone Steak', price: 25.50, quantity: 1, specialInstructions: 'Extra garlic butter on the side'}, {dishName: 'Coke', price: 3.00, quantity: 1}]},
+    { id: "ORD002", customer: "Olivia Smith", email: "olivia@example.com", amount: 25.00, status: "Processing", date: "2023-06-24", type: "Takeout", tableNumber: 'N/A', items: [{dishName: 'Cheeseburger', price: 15.00, quantity: 1, specialInstructions: "No pickles"}, {dishName: 'Fries', price: 5.00, quantity: 1}]},
+    { id: "ORD003", customer: "Noah Williams", email: "noah@example.com", amount: 45.00, status: "Completed", date: "2023-06-25", type: "Delivery", tableNumber: 'N/A', specialInstructions: "Leave at the front door.", items: [{dishName: 'Pepperoni Pizza', price: 20.00, quantity: 1}, {dishName: 'Wings', price: 15.00, quantity: 1}]},
     { id: "ORD004", customer: "Emma Brown", email: "emma@example.com", amount: 15.00, status: "Pending", date: "2023-06-26", type: "Dine-In", tableNumber: '12', items: [{dishName: 'Caesar Salad', price: 15.00, quantity: 1}]},
-    { id: "ORD005", customer: "James Jones", email: "james@example.com", amount: 50.00, status: "Completed", date: "2023-06-27", type: "Takeout", tableNumber: 'N/A', items: [{dishName: 'Spaghetti Carbonara', price: 18.00, quantity: 2}]},
+    { id: "ORD005", customer: "James Jones", email: "james@example.com", amount: 50.00, status: "Completed", date: "2023-06-27", type: "Takeout", tableNumber: 'N/A', items: [{dishName: 'Spaghetti Carbonara', price: 18.00, quantity: 2, specialInstructions: 'Gluten-free pasta'}]},
 ];
 
 export const allOrders: Order[] = [
   ...recentOrders,
   { id: "ORD006", customer: "Sophia Davis", email: "sophia@example.com", amount: 22.00, status: "Completed", date: "2023-06-22", type: "Delivery", tableNumber: 'N/A', items: [{dishName: 'Veggie Wrap', price: 12.00, quantity: 1}]},
   { id: "ORD007", customer: "William Garcia", email: "william@example.com", amount: 18.00, status: "Cancelled", date: "2023-06-21", type: "Dine-In", tableNumber: '2', items: [{dishName: 'Chicken Soup', price: 18.00, quantity: 1}]},
-  { id: "ORD008", customer: "Isabella Rodriguez", email: "isabella@example.com", amount: 33.00, status: "Completed", date: "2023-06-20", type: "Takeout", tableNumber: 'N/A', items: [{dishName: 'Fish and Chips', price: 22.00, quantity: 1}]},
+  { id: "ORD008", customer: "Isabella Rodriguez", email: "isabella@example.com", amount: 33.00, status: "Completed", date: "2023-06-20", type: "Takeout", tableNumber: 'N/A', specialInstructions: "Extra napkins please.", items: [{dishName: 'Fish and Chips', price: 22.00, quantity: 1, specialInstructions: 'Extra tartar sauce'}]},
   { id: "ORD009", customer: "Michael Miller", email: "michael@example.com", amount: 40.00, status: "Processing", date: "2023-06-26", type: "Dine-In", tableNumber: '9', items: [{dishName: 'Penne alla Vodka', price: 20.00, quantity: 2}]},
-  { id: "ORD010", customer: "Ava Martinez", email: "ava@example.com", amount: 30.00, status: "Completed", date: "2023-06-25", type: "Delivery", tableNumber: 'N/A', items: [{dishName: 'Tacos', price: 15.00, quantity: 2}]},
+  { id: "ORD010", customer: "Ava Martinez", email: "ava@example.com", amount: 30.00, status: "Completed", date: "2023-06-25", type: "Delivery", tableNumber: 'N/A', items: [{dishName: 'Tacos', price: 15.00, quantity: 2, specialInstructions: "No onions"}]},
 ];
 
 
