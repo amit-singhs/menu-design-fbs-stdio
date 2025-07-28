@@ -1,3 +1,4 @@
+
 "use client";
 
 import { ChefHat } from "lucide-react";
@@ -118,7 +119,7 @@ export function DashboardSidebar() {
       <SidebarHeader className="hidden md:flex flex-row justify-between items-center">
         <div className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
           <ChefHat className="w-6 h-6 transition-all" />
-          <span className="font-semibold font-headline text-lg transition-all">
+          <span className="font-semibold font-headline text-lg transition-all whitespace-nowrap">
             Bella Vista
           </span>
         </div>

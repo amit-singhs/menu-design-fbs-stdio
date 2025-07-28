@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -26,7 +27,7 @@ export function DashboardHeader() {
     <header className="flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 sticky top-0 z-30">
       <div className="hidden md:flex items-center gap-2">
         <ChefHat className="h-6 w-6" />
-        <span className="font-semibold font-headline">Bella Vista</span>
+        <span className="font-semibold font-headline whitespace-nowrap">Bella Vista</span>
       </div>
       
       <Button
@@ -40,12 +41,12 @@ export function DashboardHeader() {
       </Button>
 
       <div className="flex-1 text-center hidden md:block">
-        <h1 className="text-xl font-bold font-headline">
+        <h1 className="text-xl font-bold font-headline whitespace-nowrap">
           Restaurant Admin
         </h1>
       </div>
 
-      <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4 justify-end">
+      <div className="flex w-full items-center gap-4 md:ml-auto md:w-auto md:gap-2 lg:gap-4 justify-end">
          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="relative">
