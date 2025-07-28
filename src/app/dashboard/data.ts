@@ -106,7 +106,7 @@ export const navItems: NavItem[] = [
     href: "#",
     icon: BookOpen,
     children: [
-        { title: "Item Unavailability", href: "/dashboard/menu", icon: ToggleLeft },
+        { title: "Item Availability", href: "/dashboard/menu", icon: ToggleLeft },
         { title: "Edit Menu", href: "/dashboard/menu/edit", icon: LayoutGrid },
     ],
   },

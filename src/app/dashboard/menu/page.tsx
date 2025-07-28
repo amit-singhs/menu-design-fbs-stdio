@@ -26,7 +26,7 @@ const availabilityBadgeVariants: Record<MenuItem["availability"], BadgeProps["va
   Unavailable: "destructive",
 };
 
-export default function ItemUnavailabilityPage() {
+export default function ItemAvailabilityPage() {
   const [menuItems, setMenuItems] = useState(initialMenuItems);
 
   const handleAvailabilityChange = (itemId: string, newAvailability: boolean) => {
@@ -43,7 +43,7 @@ export default function ItemUnavailabilityPage() {
     <div className="flex flex-col gap-6 md:gap-8">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-headline">
-          Item Unavailability
+          Item Availability
         </h1>
       </div>
        <Card>
