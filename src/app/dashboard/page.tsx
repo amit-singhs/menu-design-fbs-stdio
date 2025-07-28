@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,13 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FileDown, PlusCircle, View, QrCode } from 'lucide-react';
+import { FileDown, View } from 'lucide-react';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { SalesChart } from '@/components/dashboard/sales-chart';
 import { PopularItemsChart } from '@/components/dashboard/popular-items-chart';
 import { RecentOrders } from '@/components/dashboard/recent-orders';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 
 type VisibleComponents = {
   stats: boolean;
@@ -82,7 +81,13 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {visibleComponents.stats && <StatsCards />}
+      <Collapsible open={visibleComponents.stats} className="w-full">
+        <CollapsibleContent>
+            <div className="pb-6 md:pb-8">
+                <StatsCards />
+            </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       <div
         className={cn(
@@ -90,26 +95,23 @@ export default function DashboardPage() {
           visibleCount > 1 && 'lg:grid-cols-5'
         )}
       >
-        {visibleComponents.sales && (
-          <div
-            className={cn(
-              'h-full',
-              visibleComponents.popular ? 'lg:col-span-3' : 'lg:col-span-5'
-            )}
-          >
-            <SalesChart />
-          </div>
-        )}
-        {visibleComponents.popular && (
-          <div
-            className={cn(
-              'h-full',
-              visibleComponents.sales ? 'lg:col-span-2' : 'lg:col-span-5'
-            )}
-          >
-            <PopularItemsChart />
-          </div>
-        )}
+        <Collapsible open={visibleComponents.sales} className={cn(
+              'h-full w-full',
+              visibleCount > 1 && visibleComponents.popular ? 'lg:col-span-3' : 'lg:col-span-5'
+            )}>
+            <CollapsibleContent>
+                <SalesChart />
+            </CollapsibleContent>
+        </Collapsible>
+        
+        <Collapsible open={visibleComponents.popular} className={cn(
+              'h-full w-full',
+              visibleCount > 1 && visibleComponents.sales ? 'lg:col-span-2' : 'lg:col-span-5'
+            )}>
+             <CollapsibleContent>
+                <PopularItemsChart />
+            </CollapsibleContent>
+        </Collapsible>
       </div>
       
        <div className="grid gap-6 md:gap-8">

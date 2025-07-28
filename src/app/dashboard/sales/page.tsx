@@ -14,7 +14,7 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from "@/components/ui/chart";
-import { salesData } from "@/app/dashboard/data";
+import { salesData, monthlySalesData } from "@/app/dashboard/data";
 
 const chartConfig = {
   sales: {
@@ -22,17 +22,6 @@ const chartConfig = {
     color: "hsl(var(--primary))",
   },
 } satisfies ChartConfig;
-
-const monthlySalesData = [
-  { month: "Jan", sales: 2400 },
-  { month: "Feb", sales: 1398 },
-  { month: "Mar", sales: 9800 },
-  { month: "Apr", sales: 3908 },
-  { month: "May", sales: 4800 },
-  { month: "Jun", sales: 3800 },
-  { month: "Jul", sales: 4300 },
-];
-
 
 export default function SalesOverviewPage() {
     return (

@@ -1,14 +1,11 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileDown, PlusCircle, QrCode } from "lucide-react";
+import { qrCodes } from "@/app/dashboard/data";
 
 export default function QRCodesPage() {
-    // Dummy data for existing QR codes
-    const qrCodes = [
-        { id: 'qr1', name: 'Main Dining Area - Table Menu', date: '2023-06-01' },
-        { id: 'qr2', name: 'Patio Menu - Summer Special', date: '2023-05-15' },
-        { id: 'qr3', name: 'Bar Menu - Happy Hour', date: '2023-06-10' },
-    ]
     return (
         <div className="flex flex-col gap-6 md:gap-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">

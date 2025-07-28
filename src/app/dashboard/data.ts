@@ -60,6 +60,11 @@ export type SalesData = {
   sales: number;
 };
 
+export type MonthlySalesData = {
+    month: string;
+    sales: number;
+}
+
 export type PopularItem = {
   name: string;
   sales: number;
@@ -90,6 +95,12 @@ export type Feedback = {
     comment: string;
     orderId: string;
 };
+
+export type QrCodeType = {
+    id: string;
+    name: string;
+    date: string;
+}
 
 // Data
 export const navItems: NavItem[] = [
@@ -198,7 +209,6 @@ export const allOrders: Order[] = [
   { id: "ORD010", customer: "Ava Martinez", email: "ava@example.com", amount: 30.00, status: "Completed", date: "2023-06-25", type: "Delivery", tableNumber: 'N/A', items: [{dishName: 'Tacos', price: 15.00, quantity: 2, specialInstructions: "No onions"}]},
 ];
 
-
 export const salesData: SalesData[] = [
     { date: "Mon", sales: 4000 },
     { date: "Tue", sales: 3000 },
@@ -207,6 +217,16 @@ export const salesData: SalesData[] = [
     { date: "Fri", sales: 1890 },
     { date: "Sat", sales: 2390 },
     { date: "Sun", sales: 3490 },
+];
+
+export const monthlySalesData: MonthlySalesData[] = [
+    { month: "Jan", sales: 2400 },
+    { month: "Feb", sales: 1398 },
+    { month: "Mar", sales: 9800 },
+    { month: "Apr", sales: 3908 },
+    { month: "May", sales: 4800 },
+    { month: "Jun", sales: 3800 },
+    { month: "Jul", sales: 4300 },
 ];
 
 export const popularItemsData: PopularItem[] = [
@@ -221,7 +241,7 @@ export const menuItems: MenuItem[] = [
     { id: "ITEM001", name: "Margherita Pizza", description: "Classic pizza with fresh mozzarella, tomatoes, and basil.", price: 12.99, category: "Pizza", availability: "Available", stock: 50 },
     { id: "ITEM002", name: "Cheeseburger", description: "Juicy beef patty with cheddar cheese, lettuce, tomato, and onion.", price: 9.99, category: "Burgers", availability: "Available", stock: 100 },
     { id: "ITEM003", name: "Spaghetti Carbonara", description: "Pasta with creamy egg sauce, pancetta, and pecorino cheese.", price: 15.50, category: "Pasta", availability: "Available", stock: 30 },
-    { id: "ITEM004", name: "Caesar Salad", description: "Crisp romaine lettuce with Caesar dressing, croutons, and parmesan.", price: 8.75, category: "Salads", availability: "Unavailable", stock: 0 },
+    { id: "ITEM004", name: "Caesar Salad", description: "Crisp romaine lettuce with Caesar dressing, croutons, and parmesan.", price: 8.75, category: "Unavailable", stock: 0 },
     { id: "ITEM005", name: "Garlic Bread", description: "Toasted bread with garlic, butter, and herbs.", price: 5.00, category: "Appetizers", availability: "Available", stock: 200 },
     { id: "ITEM006", name: "Tiramisu", description: "Coffee-flavored Italian dessert.", price: 7.25, category: "Desserts", availability: "Available", stock: 40 },
     { id: "ITEM007", name: "Hawaiian Pizza", description: "Pizza with ham and pineapple.", price: 13.99, category: "Pizza", availability: "Available", stock: 40 },
@@ -234,4 +254,10 @@ export const customerFeedback: Feedback[] = [
     { id: "FB003", customer: "Noah Williams", date: "2023-06-25", orderId: "ORD003", ratings: { food: 5, service: 5, ambience: 5, value: 5 }, comment: "Best pizza in town! Will be back for sure." },
     { id: "FB004", customer: "Emma Brown", date: "2023-06-26", orderId: "ORD004", ratings: { food: 4, service: 2, ambience: 2, value: 3 }, comment: "Service was slow and the restaurant was too noisy." },
     { id: "FB005", customer: "James Jones", date: "2023-06-27", orderId: "ORD005", ratings: { food: 5, service: 4, ambience: 4, value: 4 }, comment: "The burger was delicious, but the fries were a bit soggy." },
+];
+
+export const qrCodes: QrCodeType[] = [
+    { id: 'qr1', name: 'Main Dining Area - Table Menu', date: '2023-06-01' },
+    { id: 'qr2', name: 'Patio Menu - Summer Special', date: '2023-05-15' },
+    { id: 'qr3', name: 'Bar Menu - Happy Hour', date: '2023-06-10' },
 ];
