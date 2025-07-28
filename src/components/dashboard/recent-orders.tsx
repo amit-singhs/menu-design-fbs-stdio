@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/table";
 import { recentOrders, type Order } from "@/app/dashboard/data";
 import Link from "next/link";
+import { useState } from "react";
+import { OrderDetailsDialog } from "./order-details-dialog";
 
 const statusBadgeVariants: Record<Order["status"], BadgeProps["variant"]> = {
   Pending: "outline",
@@ -28,7 +30,10 @@ const statusBadgeVariants: Record<Order["status"], BadgeProps["variant"]> = {
 
 
 export function RecentOrders() {
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
   return (
+    <>
     <Card>
       <CardHeader className="flex flex-row items-center">
         <div className="grid gap-2">
@@ -38,7 +43,7 @@ export function RecentOrders() {
           </CardDescription>
         </div>
         <Button asChild size="sm" className="ml-auto gap-1">
-          <Link href="#">
+          <Link href="/dashboard/orders/history">
             View All
             <ArrowUpRight className="h-4 w-4" />
           </Link>
@@ -74,7 +79,7 @@ export function RecentOrders() {
                 <TableCell className="hidden md:table-cell">{order.date}</TableCell>
                 <TableCell className="text-right">${order.amount.toFixed(2)}</TableCell>
                 <TableCell className="text-right">
-                    <Button variant="outline" size="sm">View Details</Button>
+                    <Button variant="outline" size="sm" onClick={() => setSelectedOrder(order)}>View Details</Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -82,5 +87,17 @@ export function RecentOrders() {
         </Table>
       </CardContent>
     </Card>
+      {selectedOrder && (
+        <OrderDetailsDialog 
+            order={selectedOrder}
+            open={!!selectedOrder}
+            onOpenChange={(isOpen) => {
+                if (!isOpen) {
+                    setSelectedOrder(null);
+                }
+            }}
+        />
+    )}
+    </>
   );
 }

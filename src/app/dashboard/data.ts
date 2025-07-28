@@ -14,6 +14,7 @@ import {
   LayoutGrid,
   User,
   ToggleLeft,
+  Users,
 } from "lucide-react";
 
 // Types
@@ -26,6 +27,7 @@ export type NavItem = {
 };
 
 export type StatCard = {
+  id: string;
   title: string;
   value: string;
   change: string;
@@ -139,12 +141,14 @@ export const navItems: NavItem[] = [
     icon: Settings,
     children: [
         { title: "Restaurant Profile", href: "/dashboard/settings/profile", icon: User },
+        { title: "Kitchen Staff", href: "/dashboard/settings/kitchen-staff", icon: Users },
     ]
   },
 ];
 
 export const statCards: StatCard[] = [
   {
+    id: 'revenue',
     title: "Total Revenue Today",
     value: "$4,290.50",
     change: "+20.1% from yesterday",
@@ -152,6 +156,7 @@ export const statCards: StatCard[] = [
     icon: LineChart,
   },
   {
+    id: 'orders',
     title: "Total Orders Today",
     value: "152",
     change: "+12.5% from yesterday",
@@ -159,6 +164,7 @@ export const statCards: StatCard[] = [
     icon: ShoppingCart,
   },
   {
+    id: 'active',
     title: "Current Active Orders",
     value: "12",
     change: "-2 from last hour",
@@ -166,6 +172,7 @@ export const statCards: StatCard[] = [
     icon: ShoppingCart,
   },
   {
+    id: 'avg-order',
     title: "Average Order Value",
     value: "$28.23",
     change: "+5.2% from yesterday",
