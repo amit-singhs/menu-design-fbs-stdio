@@ -1,5 +1,7 @@
+'use client'
+
+import { useState } from 'react';
 import { Badge, type BadgeProps } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,38 +17,40 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { menuItems, type MenuItem } from "@/app/dashboard/data";
-import { FileDown, PlusCircle } from "lucide-react";
-import Link from "next/link";
+import { menuItems as initialMenuItems, type MenuItem } from "@/app/dashboard/data";
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const availabilityBadgeVariants: Record<MenuItem["availability"], BadgeProps["variant"]> = {
   Available: "default",
   Unavailable: "destructive",
 };
 
-export default function MenuManagementPage() {
+export default function ItemUnavailabilityPage() {
+  const [menuItems, setMenuItems] = useState(initialMenuItems);
+
+  const handleAvailabilityChange = (itemId: string, newAvailability: boolean) => {
+    setMenuItems(prevItems =>
+      prevItems.map(item =>
+        item.id === itemId
+          ? { ...item, availability: newAvailability ? 'Available' : 'Unavailable' }
+          : item
+      )
+    );
+  };
+
   return (
     <div className="flex flex-col gap-6 md:gap-8">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-headline">
-          Menu Items
+          Item Unavailability
         </h1>
-         <div className="flex items-center gap-2 w-full md:w-auto">
-          <Button asChild className="w-full md:w-auto">
-            <Link href="/dashboard/menu/add">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add New Item
-            </Link>
-          </Button>
-          <Button variant="outline" className="w-full md:w-auto">
-            <FileDown className="mr-2 h-4 w-4" /> Export Menu
-          </Button>
-        </div>
       </div>
        <Card>
       <CardHeader>
-        <CardTitle>All Menu Items</CardTitle>
+        <CardTitle>Manage Item Availability</CardTitle>
         <CardDescription>
-          View, edit, and manage all items on your menu.
+          Quickly mark items as available or unavailable on your menu.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -55,12 +59,7 @@ export default function MenuManagementPage() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead className="hidden sm:table-cell">Category</TableHead>
-              <TableHead className="hidden md:table-cell">Price</TableHead>
-              <TableHead className="hidden sm:table-cell">Availability</TableHead>
-              <TableHead className="text-right">Stock</TableHead>
-              <TableHead>
-                <span className="sr-only">Actions</span>
-              </TableHead>
+              <TableHead className="text-right">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -70,15 +69,20 @@ export default function MenuManagementPage() {
                   <div className="font-medium">{item.name}</div>
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">{item.category}</TableCell>
-                <TableCell className="hidden md:table-cell">${item.price.toFixed(2)}</TableCell>
-                <TableCell className="hidden sm:table-cell">
-                   <Badge className="text-xs" variant={availabilityBadgeVariants[item.availability]}>
-                    {item.availability}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">{item.stock}</TableCell>
                 <TableCell className="text-right">
-                    <Button variant="outline" size="sm">Edit</Button>
+                  <div className="flex items-center justify-end gap-2">
+                    <Label htmlFor={`avail-${item.id}`} className="sr-only">
+                      Availability
+                    </Label>
+                     <Switch
+                        id={`avail-${item.id}`}
+                        checked={item.availability === 'Available'}
+                        onCheckedChange={(checked) => handleAvailabilityChange(item.id, checked)}
+                      />
+                    <Badge className="text-xs w-24 justify-center" variant={availabilityBadgeVariants[item.availability]}>
+                      {item.availability}
+                    </Badge>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

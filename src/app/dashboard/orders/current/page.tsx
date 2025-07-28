@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { allOrders, type Order } from "@/app/dashboard/data";
+import { OrderDetailsDialog } from '@/components/dashboard/order-details-dialog';
 
 const statusBadgeVariants: Record<Order["status"], BadgeProps["variant"]> = {
   Pending: "outline",
@@ -25,7 +29,9 @@ const statusBadgeVariants: Record<Order["status"], BadgeProps["variant"]> = {
 };
 
 export default function CurrentOrdersPage() {
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const currentOrders = allOrders.filter(o => o.status === 'Pending' || o.status === 'Processing');
+  
   return (
     <div className="flex flex-col gap-6 md:gap-8">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -50,9 +56,7 @@ export default function CurrentOrdersPage() {
               <TableHead className="hidden md:table-cell">Date</TableHead>
               <TableHead className="hidden sm:table-cell">Status</TableHead>
               <TableHead className="text-right">Amount</TableHead>
-              <TableHead>
-                <span className="sr-only">Actions</span>
-              </TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -73,7 +77,7 @@ export default function CurrentOrdersPage() {
                 </TableCell>
                 <TableCell className="text-right">${order.amount.toFixed(2)}</TableCell>
                 <TableCell className="text-right">
-                    <Button variant="outline" size="sm">View Details</Button>
+                    <Button variant="outline" size="sm" onClick={() => setSelectedOrder(order)}>View Details</Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -81,6 +85,17 @@ export default function CurrentOrdersPage() {
         </Table>
       </CardContent>
     </Card>
+    {selectedOrder && (
+        <OrderDetailsDialog 
+            order={selectedOrder}
+            open={!!selectedOrder}
+            onOpenChange={(isOpen) => {
+                if (!isOpen) {
+                    setSelectedOrder(null);
+                }
+            }}
+        />
+    )}
     </div>
   );
 }

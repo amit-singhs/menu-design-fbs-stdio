@@ -1,4 +1,6 @@
-import { Badge } from "@/components/ui/badge";
+'use client'
+
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,9 +17,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { customerFeedback } from "@/app/dashboard/data";
+import { customerFeedback, type Feedback } from "@/app/dashboard/data";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FeedbackDetailsDialog } from '@/components/dashboard/feedback-details-dialog';
 
 function Rating({ rating }: { rating: number }) {
   return (
@@ -36,6 +39,8 @@ function Rating({ rating }: { rating: number }) {
 }
 
 export default function FeedbackPage() {
+  const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
+
   return (
     <div className="flex flex-col gap-6 md:gap-8">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -56,35 +61,46 @@ export default function FeedbackPage() {
             <TableRow>
               <TableHead>Customer</TableHead>
               <TableHead className="hidden sm:table-cell">Date</TableHead>
-              <TableHead className="hidden md:table-cell">Rating</TableHead>
+              <TableHead className="hidden md:table-cell">Avg. Rating</TableHead>
               <TableHead>Comment</TableHead>
-              <TableHead>
-                <span className="sr-only">Actions</span>
-              </TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {customerFeedback.map((feedback) => (
+            {customerFeedback.map((feedback) => {
+              const avgRating = (feedback.ratings.food + feedback.ratings.service + feedback.ratings.ambience + feedback.ratings.value) / 4;
+              return (
               <TableRow key={feedback.id}>
                 <TableCell>
                   <div className="font-medium">{feedback.customer}</div>
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">{feedback.date}</TableCell>
                 <TableCell className="hidden md:table-cell">
-                    <Rating rating={feedback.rating} />
+                    <Rating rating={avgRating} />
                 </TableCell>
                 <TableCell>
-                  <p className="max-w-xs truncate">{feedback.comment}</p>
+                  <p className="max-w-[200px] lg:max-w-xs truncate">{feedback.comment}</p>
                 </TableCell>
                 <TableCell className="text-right">
-                    <Button variant="outline" size="sm">View</Button>
+                    <Button variant="outline" size="sm" onClick={() => setSelectedFeedback(feedback)}>View</Button>
                 </TableCell>
               </TableRow>
-            ))}
+            )})}
           </TableBody>
         </Table>
       </CardContent>
     </Card>
+    {selectedFeedback && (
+        <FeedbackDetailsDialog
+            feedback={selectedFeedback}
+            open={!!selectedFeedback}
+            onOpenChange={(isOpen) => {
+                if (!isOpen) {
+                    setSelectedFeedback(null);
+                }
+            }}
+        />
+    )}
     </div>
   );
 }

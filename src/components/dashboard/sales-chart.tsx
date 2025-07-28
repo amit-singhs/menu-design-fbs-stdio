@@ -26,12 +26,12 @@ const chartConfig = {
 
 export function SalesChart() {
   return (
-    <Card className="h-full">
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle>Sales Overview</CardTitle>
         <CardDescription>Last 7 Days</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
           <BarChart accessibilityLayer data={salesData}>
             <CartesianGrid vertical={false} />

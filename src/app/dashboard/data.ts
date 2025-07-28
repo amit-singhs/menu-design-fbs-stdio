@@ -10,10 +10,10 @@ import {
   MessageSquare,
   Package,
   History,
-  PlusCircle,
   List,
   LayoutGrid,
   User,
+  ToggleLeft,
 } from "lucide-react";
 
 // Types
@@ -41,8 +41,17 @@ export type Order = {
   status: "Pending" | "Processing" | "Completed" | "Cancelled";
   date: string;
   type: "Dine-In" | "Takeout" | "Delivery";
-  items: number;
+  items: CartItem[];
+  tableNumber: string;
+  specialInstructions?: string;
 };
+
+export type CartItem = {
+  dishName: string;
+  price: number;
+  quantity: number;
+  specialInstructions?: string;
+}
 
 export type SalesData = {
   date: string;
@@ -59,7 +68,9 @@ export type MenuItem = {
     id: string;
     name: string;
     price: number;
+    description: string;
     category: string;
+    subcategory?: string;
     availability: "Available" | "Unavailable";
     stock: number;
 };
@@ -68,8 +79,14 @@ export type Feedback = {
     id: string;
     customer: string;
     date: string;
-    rating: number;
+    ratings: {
+        food: number;
+        service: number;
+        ambience: number;
+        value: number;
+    };
     comment: string;
+    orderId: string;
 };
 
 // Data
@@ -89,9 +106,8 @@ export const navItems: NavItem[] = [
     href: "#",
     icon: BookOpen,
     children: [
-        { title: "View/Edit Items", href: "/dashboard/menu", icon: List },
-        { title: "Add Item", href: "/dashboard/menu/add", icon: PlusCircle },
-        { title: "Categories", href: "/dashboard/menu/categories", icon: LayoutGrid },
+        { title: "Item Unavailability", href: "/dashboard/menu", icon: ToggleLeft },
+        { title: "Edit Menu", href: "/dashboard/menu/edit", icon: LayoutGrid },
     ],
   },
   {
@@ -111,7 +127,7 @@ export const navItems: NavItem[] = [
   },
   {
     title: "Customer Feedback",
-    href: "/dashboard/feedback",
+    href: "#",
     icon: MessageSquare,
     children: [
         { title: "View Reviews", href: "/dashboard/feedback/view", icon: MessageSquare },
@@ -159,20 +175,20 @@ export const statCards: StatCard[] = [
 ];
 
 export const recentOrders: Order[] = [
-    { id: "ORD001", customer: "Liam Johnson", email: "liam@example.com", amount: 250.00, status: "Completed", date: "2023-06-23", type: "Dine-In", items: 3 },
-    { id: "ORD002", customer: "Olivia Smith", email: "olivia@example.com", amount: 150.00, status: "Processing", date: "2023-06-24", type: "Takeout", items: 2 },
-    { id: "ORD003", customer: "Noah Williams", email: "noah@example.com", amount: 350.00, status: "Completed", date: "2023-06-25", type: "Delivery", items: 5 },
-    { id: "ORD004", customer: "Emma Brown", email: "emma@example.com", amount: 450.00, status: "Pending", date: "2023-06-26", type: "Dine-In", items: 4 },
-    { id: "ORD005", customer: "James Jones", email: "james@example.com", amount: 550.00, status: "Completed", date: "2023-06-27", type: "Takeout", items: 1 },
+    { id: "ORD001", customer: "Liam Johnson", email: "liam@example.com", amount: 38.50, status: "Completed", date: "2023-06-23", type: "Dine-In", tableNumber: '5', items: [{dishName: 'T-Bone Steak', price: 25.50, quantity: 1}, {dishName: 'Coke', price: 3.00, quantity: 1}]},
+    { id: "ORD002", customer: "Olivia Smith", email: "olivia@example.com", amount: 25.00, status: "Processing", date: "2023-06-24", type: "Takeout", tableNumber: 'N/A', items: [{dishName: 'Cheeseburger', price: 15.00, quantity: 1}, {dishName: 'Fries', price: 5.00, quantity: 1}]},
+    { id: "ORD003", customer: "Noah Williams", email: "noah@example.com", amount: 45.00, status: "Completed", date: "2023-06-25", type: "Delivery", tableNumber: 'N/A', items: [{dishName: 'Pepperoni Pizza', price: 20.00, quantity: 1}, {dishName: 'Wings', price: 15.00, quantity: 1}]},
+    { id: "ORD004", customer: "Emma Brown", email: "emma@example.com", amount: 15.00, status: "Pending", date: "2023-06-26", type: "Dine-In", tableNumber: '12', items: [{dishName: 'Caesar Salad', price: 15.00, quantity: 1}]},
+    { id: "ORD005", customer: "James Jones", email: "james@example.com", amount: 50.00, status: "Completed", date: "2023-06-27", type: "Takeout", tableNumber: 'N/A', items: [{dishName: 'Spaghetti Carbonara', price: 18.00, quantity: 2}]},
 ];
 
 export const allOrders: Order[] = [
   ...recentOrders,
-  { id: "ORD006", customer: "Sophia Davis", email: "sophia@example.com", amount: 120.00, status: "Completed", date: "2023-06-22", type: "Delivery", items: 2 },
-  { id: "ORD007", customer: "William Garcia", email: "william@example.com", amount: 80.00, status: "Cancelled", date: "2023-06-21", type: "Dine-In", items: 1 },
-  { id: "ORD008", customer: "Isabella Rodriguez", email: "isabella@example.com", amount: 200.00, status: "Completed", date: "2023-06-20", type: "Takeout", items: 3 },
-  { id: "ORD009", customer: "Michael Miller", email: "michael@example.com", amount: 175.00, status: "Processing", date: "2023-06-26", type: "Dine-In", items: 2 },
-  { id: "ORD010", customer: "Ava Martinez", email: "ava@example.com", amount: 300.00, status: "Completed", date: "2023-06-25", type: "Delivery", items: 4 },
+  { id: "ORD006", customer: "Sophia Davis", email: "sophia@example.com", amount: 22.00, status: "Completed", date: "2023-06-22", type: "Delivery", tableNumber: 'N/A', items: [{dishName: 'Veggie Wrap', price: 12.00, quantity: 1}]},
+  { id: "ORD007", customer: "William Garcia", email: "william@example.com", amount: 18.00, status: "Cancelled", date: "2023-06-21", type: "Dine-In", tableNumber: '2', items: [{dishName: 'Chicken Soup', price: 18.00, quantity: 1}]},
+  { id: "ORD008", customer: "Isabella Rodriguez", email: "isabella@example.com", amount: 33.00, status: "Completed", date: "2023-06-20", type: "Takeout", tableNumber: 'N/A', items: [{dishName: 'Fish and Chips', price: 22.00, quantity: 1}]},
+  { id: "ORD009", customer: "Michael Miller", email: "michael@example.com", amount: 40.00, status: "Processing", date: "2023-06-26", type: "Dine-In", tableNumber: '9', items: [{dishName: 'Penne alla Vodka', price: 20.00, quantity: 2}]},
+  { id: "ORD010", customer: "Ava Martinez", email: "ava@example.com", amount: 30.00, status: "Completed", date: "2023-06-25", type: "Delivery", tableNumber: 'N/A', items: [{dishName: 'Tacos', price: 15.00, quantity: 2}]},
 ];
 
 
@@ -195,18 +211,20 @@ export const popularItemsData: PopularItem[] = [
 ];
 
 export const menuItems: MenuItem[] = [
-    { id: "ITEM001", name: "Margherita Pizza", price: 12.99, category: "Pizza", availability: "Available", stock: 50 },
-    { id: "ITEM002", name: "Cheeseburger", price: 9.99, category: "Burgers", availability: "Available", stock: 100 },
-    { id: "ITEM003", name: "Spaghetti Carbonara", price: 15.50, category: "Pasta", availability: "Available", stock: 30 },
-    { id: "ITEM004", name: "Caesar Salad", price: 8.75, category: "Salads", availability: "Unavailable", stock: 0 },
-    { id: "ITEM005", name: "Garlic Bread", price: 5.00, category: "Appetizers", availability: "Available", stock: 200 },
-    { id: "ITEM006", name: "Tiramisu", price: 7.25, category: "Desserts", availability: "Available", stock: 40 },
+    { id: "ITEM001", name: "Margherita Pizza", description: "Classic pizza with fresh mozzarella, tomatoes, and basil.", price: 12.99, category: "Pizza", availability: "Available", stock: 50 },
+    { id: "ITEM002", name: "Cheeseburger", description: "Juicy beef patty with cheddar cheese, lettuce, tomato, and onion.", price: 9.99, category: "Burgers", availability: "Available", stock: 100 },
+    { id: "ITEM003", name: "Spaghetti Carbonara", description: "Pasta with creamy egg sauce, pancetta, and pecorino cheese.", price: 15.50, category: "Pasta", availability: "Available", stock: 30 },
+    { id: "ITEM004", name: "Caesar Salad", description: "Crisp romaine lettuce with Caesar dressing, croutons, and parmesan.", price: 8.75, category: "Salads", availability: "Unavailable", stock: 0 },
+    { id: "ITEM005", name: "Garlic Bread", description: "Toasted bread with garlic, butter, and herbs.", price: 5.00, category: "Appetizers", availability: "Available", stock: 200 },
+    { id: "ITEM006", name: "Tiramisu", description: "Coffee-flavored Italian dessert.", price: 7.25, category: "Desserts", availability: "Available", stock: 40 },
+    { id: "ITEM007", name: "Hawaiian Pizza", description: "Pizza with ham and pineapple.", price: 13.99, category: "Pizza", availability: "Available", stock: 40 },
+    { id: "ITEM008", name: "Veggie Burger", description: "Plant-based patty with all the fixings.", price: 10.99, category: "Burgers", availability: "Available", stock: 50 },
 ];
 
 export const customerFeedback: Feedback[] = [
-    { id: "FB001", customer: "Liam Johnson", date: "2023-06-23", rating: 5, comment: "Amazing food and great service!" },
-    { id: "FB002", customer: "Olivia Smith", date: "2023-06-24", rating: 4, comment: "The pasta was a bit cold, but everything else was good." },
-    { id: "FB003", customer: "Noah Williams", date: "2023-06-25", rating: 5, comment: "Best pizza in town! Will be back for sure." },
-    { id: "FB004", customer: "Emma Brown", date: "2023-06-26", rating: 3, comment: "Service was slow and the restaurant was too noisy." },
-    { id: "FB005", customer: "James Jones", date: "2023-06-27", rating: 4, comment: "The burger was delicious, but the fries were a bit soggy." },
+    { id: "FB001", customer: "Liam Johnson", date: "2023-06-23", orderId: "ORD001", ratings: { food: 5, service: 5, ambience: 4, value: 5 }, comment: "Amazing food and great service!" },
+    { id: "FB002", customer: "Olivia Smith", date: "2023-06-24", orderId: "ORD002", ratings: { food: 3, service: 4, ambience: 3, value: 4 }, comment: "The pasta was a bit cold, but everything else was good." },
+    { id: "FB003", customer: "Noah Williams", date: "2023-06-25", orderId: "ORD003", ratings: { food: 5, service: 5, ambience: 5, value: 5 }, comment: "Best pizza in town! Will be back for sure." },
+    { id: "FB004", customer: "Emma Brown", date: "2023-06-26", orderId: "ORD004", ratings: { food: 4, service: 2, ambience: 2, value: 3 }, comment: "Service was slow and the restaurant was too noisy." },
+    { id: "FB005", customer: "James Jones", date: "2023-06-27", orderId: "ORD005", ratings: { food: 5, service: 4, ambience: 4, value: 4 }, comment: "The burger was delicious, but the fries were a bit soggy." },
 ];
