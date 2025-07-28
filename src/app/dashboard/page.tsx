@@ -112,28 +112,8 @@ export default function DashboardPage() {
         )}
       </div>
       
-       <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
+       <div className="grid gap-6 md:gap-8">
          <RecentOrders />
-         <div className="grid gap-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Quick Actions</CardTitle>
-                    <CardDescription>Perform common tasks with a single click.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-4">
-                    <Button asChild variant="outline" size="lg">
-                        <Link href="/dashboard/menu/edit">
-                         <PlusCircle className="mr-2 h-4 w-4" /> Add Menu Item
-                        </Link>
-                    </Button>
-                     <Button asChild variant="outline" size="lg">
-                        <Link href="/dashboard/qr-codes">
-                          <QrCode className="mr-2 h-4 w-4" /> Generate QR Code
-                        </Link>
-                    </Button>
-                </CardContent>
-            </Card>
-        </div>
        </div>
     </div>
   );
