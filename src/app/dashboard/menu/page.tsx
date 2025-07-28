@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react';
-import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
+import type { BadgeProps } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
