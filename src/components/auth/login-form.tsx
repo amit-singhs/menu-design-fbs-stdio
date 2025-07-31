@@ -16,7 +16,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Loader2, UtensilsCrossed } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 const loginFormSchema = z.object({
@@ -26,7 +25,11 @@ const loginFormSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-export function LoginForm() {
+interface LoginFormProps {
+  onForgotPassword: () => void;
+}
+
+export function LoginForm({ onForgotPassword }: LoginFormProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,12 +93,14 @@ export function LoginForm() {
               <FormItem>
                   <div className="flex items-center">
                       <FormLabel>Password</FormLabel>
-                      <Link
-                          href="#"
-                          className="ml-auto inline-block text-sm underline"
+                      <Button
+                          type="button"
+                          variant="link"
+                          onClick={onForgotPassword}
+                          className="ml-auto inline-block text-sm underline p-0 h-auto"
                       >
                           Forgot your password?
-                      </Link>
+                      </Button>
                   </div>
                 <FormControl>
                   <Input type="password" placeholder="••••••••" {...field} />
