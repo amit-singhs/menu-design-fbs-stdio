@@ -125,7 +125,7 @@ export function RegisterForm() {
                 </p>
             </div>
             <Form {...otpForm}>
-                <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-6">
+                <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-6" suppressHydrationWarning>
                     <FormField
                         control={otpForm.control}
                         name="otp"
@@ -175,7 +175,7 @@ export function RegisterForm() {
             </p>
         </div>
         <Form {...detailsForm}>
-        <form onSubmit={detailsForm.handleSubmit(onDetailsSubmit)} className="space-y-4">
+        <form onSubmit={detailsForm.handleSubmit(onDetailsSubmit)} className="space-y-4" suppressHydrationWarning>
             <FormField
             control={detailsForm.control}
             name="restaurantName"
