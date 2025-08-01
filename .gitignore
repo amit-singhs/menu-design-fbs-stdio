@@ -38,8 +38,13 @@ yarn-error.log*
 next-env.d.ts
 
 .genkit/*
-.env*
+.env
+.env.example
+
 
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+# Task master related
+.taskmaster
