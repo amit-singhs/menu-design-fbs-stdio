@@ -4,13 +4,14 @@ import { AuthForm } from '@/components/auth/auth-form';
 import { RouteGuard } from '@/components/auth/route-guard';
 import Image from 'next/image';
 
+
 export default function AuthenticationPage() {
   return (
     <RouteGuard requireAuth={false}>
       <div className="w-full h-screen overflow-hidden lg:grid lg:grid-cols-2">
         <div className="hidden bg-primary/10 lg:block relative">
           <Image
-            src="https://placehold.co/1200x1800.png"
+            src="/assets/shayna-douglas-H8qwryGP_h0-unsplash.jpg"
             alt="A vibrant dish from a restaurant menu"
             width="1200"
             height="1800"
