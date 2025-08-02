@@ -17,6 +17,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Loader2, UtensilsCrossed } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useLogin } from '@/lib/api/auth-service';
+import { setCookie, COOKIE_KEYS } from '@/lib/cookies';
+import { useAuth } from '@/context/auth-context';
 
 const loginFormSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -32,7 +35,8 @@ interface LoginFormProps {
 export function LoginForm({ onForgotPassword }: LoginFormProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const loginMutation = useLogin();
+  const { login } = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -43,21 +47,29 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    setIsSubmitting(true);
-    console.log('Login Data:', data);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast({
-      title: 'Login Successful!',
-      description: 'Welcome back! Redirecting you to the dashboard.',
-    });
-    
-    // In a real app, you'd get a token and save it.
-    router.push('/dashboard');
-
-    setIsSubmitting(false);
+    try {
+      const response = await loginMutation.mutateAsync(data);
+      
+      // Store JWT token in cookies
+      setCookie(COOKIE_KEYS.AUTH_TOKEN, response.token);
+      
+      // Update auth context with token only
+      login(response.token);
+      
+      toast({
+        title: 'Login Successful!',
+        description: 'Welcome back! Redirecting you to the dashboard.',
+      });
+      
+      // Redirect to dashboard
+      router.push('/dashboard');
+    } catch (error) {
+      toast({
+        title: 'Login Failed',
+        description: error instanceof Error ? error.message : 'An error occurred during login.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -109,8 +121,8 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+            {loginMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Login
           </Button>
         </form>

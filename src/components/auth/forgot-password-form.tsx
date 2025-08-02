@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Loader2, Mail, UtensilsCrossed } from 'lucide-react';
+import { useForgotPassword } from '@/lib/api/auth-service';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -29,9 +30,8 @@ interface ForgotPasswordFormProps {
 
 export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-
+  const forgotPasswordMutation = useForgotPassword();
 
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -41,19 +41,26 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
   });
 
   const onSubmit = async (data: ForgotPasswordFormValues) => {
-    setIsSubmitting(true);
-    console.log('Forgot Password Data:', data);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast({
-      title: 'Reset Link Sent',
-      description: `If an account exists for ${data.email}, you will receive a password reset link shortly.`,
-    });
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    try {
+      await forgotPasswordMutation.mutateAsync(data);
+      
+      toast({
+        title: 'Reset Link Sent',
+        description: `If an account exists for ${data.email}, you will receive a password reset link shortly.`,
+      });
+      
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      
+      toast({
+        title: 'Reset Link Sent',
+        description: `If an account exists for ${data.email}, you will receive a password reset link shortly.`,
+      });
+      
+      // Still show success message for security reasons (don't reveal if email exists)
+      setIsSubmitted(true);
+    }
   };
   
   if (isSubmitted) {
@@ -101,8 +108,8 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button type="submit" className="w-full" disabled={forgotPasswordMutation.isPending}>
+            {forgotPasswordMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Send Reset Link
           </Button>
            <Button type="button" variant="link" onClick={onBackToLogin} className="w-full">

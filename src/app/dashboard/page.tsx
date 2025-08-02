@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { RouteGuard } from '@/components/auth/route-guard';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,7 +39,8 @@ export default function DashboardPage() {
   const visibleCount = Object.values(visibleComponents).filter(Boolean).length;
 
   return (
-    <div className="flex flex-col gap-6 md:gap-8">
+    <RouteGuard>
+      <div className="flex flex-col gap-6 md:gap-8">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-headline">
           Dashboard
@@ -117,6 +119,7 @@ export default function DashboardPage() {
        <div className="grid gap-6 md:gap-8">
          <RecentOrders />
        </div>
-    </div>
+      </div>
+    </RouteGuard>
   );
 }

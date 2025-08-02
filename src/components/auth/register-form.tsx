@@ -20,6 +20,9 @@ import { Loader2, UtensilsCrossed } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { useRegister } from '@/lib/api/auth-service';
+import { setCookie } from '@/lib/cookies';
+import { COOKIE_KEYS } from '@/lib/cookies';
 
 // State for which step we are on
 type Step = 'details' | 'otp';
@@ -53,6 +56,8 @@ export function RegisterForm() {
   const [step, setStep] = useState<Step>('details');
   const [registrationData, setRegistrationData] = useState<RegisterFormValues | null>(null);
 
+  const registerMutation = useRegister();
+
   const detailsForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
     defaultValues: {
@@ -74,44 +79,79 @@ export function RegisterForm() {
 
   const onDetailsSubmit = async (data: RegisterFormValues) => {
     setIsSubmitting(true);
-    console.log('Registration Data:', data);
     
-    // Simulate API call to send OTP
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setRegistrationData(data);
-    setStep('otp');
+    try {
+      // Call the register API without confirmPassword
+      const result = await registerMutation.mutateAsync({
+        name: data.restaurantName,
+        email: data.email,
+        mobile: data.mobile,
+        password: data.password,
+      });
 
-    toast({
-      title: 'OTP Sent!',
-      description: `We've sent a verification code to ${data.mobile}.`,
-    });
-    
-    setIsSubmitting(false);
+      // Store the registration data for potential OTP step later
+      setRegistrationData(data);
+      
+      toast({
+        title: 'Registration Successful!',
+        description: result.message || 'Your account has been created successfully.',
+      });
+
+      // For now, redirect to the welcome page where user can create their menu
+      // TODO: Uncomment the OTP step when ready to integrate
+      // setStep('otp');
+      
+      // Redirect to the welcome page where user can create their menu
+      router.push('/welcome');
+      
+    } catch (error) {
+      console.error('Registration error:', error);
+      
+      toast({
+        title: 'Registration Failed',
+        description: error instanceof Error ? error.message : 'An error occurred during registration.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   const onOtpSubmit = async (data: z.infer<typeof otpFormSchema>) => {
     setIsSubmitting(true);
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (data.otp === '111111') {
+    try {
+      // TODO: Implement actual OTP verification when backend is ready
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      if (data.otp === '111111') {
         toast({
-            title: 'Verification Successful!',
-            description: 'Your account has been created. Redirecting...',
+          title: 'Verification Successful!',
+          description: 'Your account has been created. Redirecting...',
         });
-        // In a real app, you would now complete the registration on the backend.
-        router.push('/');
-    } else {
+        
+        // Redirect to the welcome page where user can create their menu
+        router.push('/welcome');
+      } else {
         otpForm.setError("otp", {
-            type: "manual",
-            message: "The code you entered is incorrect. Please try again.",
+          type: "manual",
+          message: "The code you entered is incorrect. Please try again.",
         });
+      }
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      
+      toast({
+        title: 'Verification Failed',
+        description: 'An error occurred during verification.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    setIsSubmitting(false);
   }
 
+  // OTP step - kept for future integration but currently suppressed
   if (step === 'otp') {
     return (
         <div className='text-center'>
