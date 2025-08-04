@@ -10,6 +10,9 @@ import { UtensilsCrossed } from 'lucide-react';
 import { useOrders } from '@/context/order-context';
 import type { CartItem } from '@/context/order-context';
 import { RouteGuard } from '@/components/auth/route-guard';
+import type { MenuItem } from '@/components/menu';
+import { MenuSelection } from '../menu-selection';
+import { DUMMY_MENUS } from '@/app/menu-data';
 
 type PlacedOrderInfo = {
   cart: CartItem[];
@@ -17,15 +20,28 @@ type PlacedOrderInfo = {
   specialInstructions?: string;
 };
 
+export type FullMenu = {
+    name: string;
+    items: MenuItem[];
+}
+
 export function WelcomePage() {
-  const [currentStep, setCurrentStep] = useState<'landing' | 'form' | 'menu'>('landing');
-  const [menuData, setMenuData] = useState<MenuFormValues | null>(null);
+  const [currentStep, setCurrentStep] = useState<'landing' | 'form' | 'menuSelection' | 'menuDisplay'>('landing');
+  const [createdMenus, setCreatedMenus] = useState<FullMenu[]>([]);
+  const [selectedMenu, setSelectedMenu] = useState<FullMenu | null>(null);
+
   const router = useRouter();
   const { addOrder } = useOrders();
 
+  const allMenus = [...DUMMY_MENUS, ...createdMenus];
+
   const handleMenuSaved = (data: MenuFormValues) => {
-    setMenuData(data);
-    setCurrentStep('menu');
+    const newMenu: FullMenu = {
+        name: data.menuName,
+        items: data.items
+    }
+    setCreatedMenus(prev => [...prev, newMenu]);
+    setCurrentStep('menuSelection');
   };
 
   const handleOrderPlaced = (orderInfo: PlacedOrderInfo) => {
@@ -33,12 +49,30 @@ export function WelcomePage() {
     router.push(`/order/${newOrder.id}`);
   };
 
-  if (currentStep === 'menu' && menuData) {
-    return (
-      <RouteGuard>
-        <Menu items={menuData.items} onOrderPlaced={handleOrderPlaced} />
-      </RouteGuard>
-    );
+  const handleMenuSelected = (menu: FullMenu) => {
+      setSelectedMenu(menu);
+      setCurrentStep('menuDisplay');
+  }
+
+  const handleBackToSelection = () => {
+    setSelectedMenu(null);
+    setCurrentStep('menuSelection');
+  }
+
+  if (currentStep === 'menuDisplay' && selectedMenu) {
+     return (
+        <RouteGuard>
+            <Menu items={selectedMenu.items} menuName={selectedMenu.name} onOrderPlaced={handleOrderPlaced} onBack={handleBackToSelection} />
+        </RouteGuard>
+     )
+  }
+
+  if (currentStep === 'menuSelection') {
+      return (
+        <RouteGuard>
+            <MenuSelection menus={allMenus} onMenuSelect={handleMenuSelected} onCreateNew={() => setCurrentStep('form')} />
+        </RouteGuard>
+      )
   }
   
   if (currentStep === 'form') {
@@ -68,13 +102,21 @@ export function WelcomePage() {
                 Your journey to a stunning digital menu begins now. Let's craft it together.
               </p>
             </CardHeader>
-            <CardContent className="flex justify-center px-6 pb-8 sm:px-10 sm:pb-10">
+            <CardContent className="flex flex-col gap-4 justify-center px-6 pb-8 sm:px-10 sm:pb-10">
               <Button
                 onClick={() => setCurrentStep('form')}
                 size="lg"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 transform hover:scale-105 transition-transform duration-200 text-lg font-bold h-14 px-8 w-full sm:w-auto rounded-xl shadow-lg hover:shadow-xl"
+                className="bg-primary hover:bg-primary/90 transform hover:scale-105 transition-transform duration-200 text-lg font-bold h-14 px-8 w-full rounded-xl shadow-lg hover:shadow-xl"
               >
-                Create Your Menu
+                Create a New Menu
+              </Button>
+               <Button
+                onClick={() => setCurrentStep('menuSelection')}
+                size="lg"
+                variant="outline"
+                className="transform hover:scale-105 transition-transform duration-200 text-lg font-bold h-14 px-8 w-full rounded-xl shadow-lg hover:shadow-xl"
+              >
+                View Existing Menus
               </Button>
             </CardContent>
           </Card>

@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/sheet';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useMemo } from 'react';
-import { Utensils, ShoppingCart, Plus, Minus, Trash2, Loader2, Info } from 'lucide-react';
+import { Utensils, ShoppingCart, Plus, Minus, Trash2, Loader2, Info, ArrowLeft } from 'lucide-react';
 import type { menuItemSchema } from '@/components/menu-form';
 import type { CartItem as CartItemType } from '@/context/order-context';
 import { Separator } from './ui/separator';
@@ -33,10 +33,12 @@ type PlacedOrderInfo = {
 
 interface MenuProps {
   items: MenuItem[];
+  menuName: string;
   onOrderPlaced: (order: PlacedOrderInfo) => void;
+  onBack: () => void;
 }
 
-export function Menu({ items, onOrderPlaced }: MenuProps) {
+export function Menu({ items, menuName, onOrderPlaced, onBack }: MenuProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [tableNumber, setTableNumber] = useState('');
   const [orderInstructions, setOrderInstructions] = useState('');
@@ -158,11 +160,14 @@ export function Menu({ items, onOrderPlaced }: MenuProps) {
       <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-40 border-b">
         <div className="container mx-auto flex h-16 sm:h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
+             <Button variant="ghost" size="icon" className="mr-2" onClick={onBack}>
+                <ArrowLeft className="h-6 w-6" />
+             </Button>
             <div className="p-2 bg-primary rounded-full text-primary-foreground">
               <Utensils className="h-6 w-6" />
             </div>
             <h1 className="font-headline text-2xl sm:text-3xl font-bold text-primary">
-              Our Menu
+              {menuName}
             </h1>
           </div>
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>

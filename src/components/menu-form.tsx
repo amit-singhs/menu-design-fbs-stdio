@@ -33,6 +33,7 @@ export const menuItemSchema = z.object({
 });
 
 const menuFormSchema = z.object({
+  menuName: z.string().min(1, 'Menu name is required.'),
   items: z.array(menuItemSchema).min(1, 'Please add at least one menu item.'),
 });
 
@@ -53,6 +54,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
   const form = useForm<MenuFormValues>({
     resolver: zodResolver(menuFormSchema),
     defaultValues: {
+      menuName: '',
       items: [{ dishName: '', price: 0, description: '', category: '', subcategory: '' }],
     },
     mode: 'onBlur',
@@ -133,7 +135,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
     
     toast({
       title: 'Menu Saved!',
-      description: 'Your menu has been successfully created.',
+      description: `Your '${data.menuName}' menu has been successfully created.`,
     });
     setIsSaving(false);
     onMenuSaved(data);
@@ -148,9 +150,30 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
               Craft Your Menu
             </h1>
             <p className="text-muted-foreground mt-2 text-lg">
-              Add your dishes below. You can add as many as you need.
+              Give your menu a name, then add your dishes below.
             </p>
           </div>
+
+          <Card className="shadow-lg rounded-xl overflow-hidden">
+             <CardHeader className="bg-muted/50 p-4">
+                <h3 className="font-headline text-xl text-primary">Menu Details</h3>
+              </CardHeader>
+              <CardContent className="p-6">
+                <FormField
+                    control={form.control}
+                    name="menuName"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="text-base">Menu Name</FormLabel>
+                        <FormControl>
+                        <Input placeholder="e.g., Dinner Menu, Cocktails, Desserts" {...field} className="text-base p-6 rounded-lg" />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+              </CardContent>
+          </Card>
 
           <div className="space-y-6">
             {fields.map((field, index) => (
