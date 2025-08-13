@@ -21,6 +21,9 @@ import { useToast } from '@/hooks/use-toast';
 import { generateDescriptionAction } from '@/app/actions';
 import { useInsertMultipleMenuItems } from '@/hooks/graphql';
 import { useRouter } from 'next/navigation';
+import { useAtom } from 'jotai';
+import { menusAtom } from '@/lib/store/menu-store';
+import { useMenuStorage } from '@/hooks/use-local-storage';
 import { GraphQLButton } from '@/components/ui/graphql-loading';
 import { PlusCircle, Save, Trash2, Wand2, ChevronsUpDown, CirclePlus, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -55,6 +58,8 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
   // GraphQL mutations
   const insertMultipleMenuItems = useInsertMultipleMenuItems();
   const router = useRouter();
+  const [menus, setMenus] = useAtom(menusAtom);
+  const { updateMenus } = useMenuStorage();
   
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState<Record<number, boolean>>({});
   const [subcategoryPopoverOpen, setSubcategoryPopoverOpen] = useState<Record<number, boolean>>({});
@@ -146,7 +151,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
         description: item.description,
         price: item.price,
         image_url: '', // Default empty image URL
-        available: true,
+        available: true, // Default to available
         category: item.category || '',
         sub_category: item.subcategory || '',
       }));
@@ -167,8 +172,10 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
           description: result.insertMultipleMenuItems.message || `Your '${data.menuName}' menu has been successfully created.`,
         });
         
-        // Redirect to dashboard
-        router.push('/dashboard');
+        // Update local storage with the new menu
+        // We'll need to refetch the menus to get the complete data structure
+        // For now, we'll invalidate the query to trigger a refetch
+        router.push('/dashboard/menu');
       } else {
         // Handle errors from the mutation
         const errors = result.insertMultipleMenuItems.errors;

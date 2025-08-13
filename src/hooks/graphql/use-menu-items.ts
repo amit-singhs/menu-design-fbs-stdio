@@ -4,16 +4,23 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { INSERT_MENU_ITEM, INSERT_MULTIPLE_MENU_ITEMS } from '@/services/graphql/mutations';
+import { INSERT_MENU_ITEM, INSERT_MULTIPLE_MENU_ITEMS, UPDATE_MENU_ITEM, UPDATE_MENU_ITEM_AVAILABILITY } from '@/services/graphql/mutations';
 import { 
   InsertMenuItemVariables, 
   InsertMenuItemResponse,
   InsertMultipleMenuItemsVariables,
-  InsertMultipleMenuItemsResponse
+  InsertMultipleMenuItemsResponse,
+  UpdateMenuItemVariables,
+  UpdateMenuItemResponse,
+  UpdateMenuItemAvailabilityVariables,
+  UpdateMenuItemAvailabilityResponse
 } from '@/lib/graphql/types';
 import { useGraphQLClient } from '@/lib/graphql/client';
 import { useGraphQLErrorHandler } from '@/lib/graphql/error-handler';
 import { toast } from '@/hooks/use-toast';
+import { useAtom } from 'jotai';
+import { menusAtom } from '@/lib/store/menu-store';
+import { useMenuStorage } from '@/hooks/use-local-storage';
 
 /**
  * Hook for inserting a single menu item
@@ -129,6 +136,134 @@ export const useInsertMultipleMenuItems = () => {
     onSuccess: (data, variables) => {
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ['menus'] });
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ['menus'] });
+    },
+  });
+};
+
+/**
+ * Hook for updating a menu item
+ * Provides optimistic updates and proper error handling
+ */
+export const useUpdateMenuItem = () => {
+  const queryClient = useQueryClient();
+  const client = useGraphQLClient();
+  const { handleError } = useGraphQLErrorHandler();
+  const [menus, setMenus] = useAtom(menusAtom);
+  const { updateMenus } = useMenuStorage();
+
+  return useMutation<UpdateMenuItemResponse, Error, UpdateMenuItemVariables>({
+    mutationFn: async (variables: UpdateMenuItemVariables) => {
+      const response = await client.request<UpdateMenuItemResponse>(UPDATE_MENU_ITEM, variables);
+      return response;
+    },
+    onError: (err, variables) => {
+      const errorMessage = handleError(err, 'UpdateMenuItem');
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+    onSuccess: (data, variables) => {
+      // Update local storage and state immediately
+      const updatedMenus = menus.map(menu => {
+        return {
+          ...menu,
+          categories: menu.categories.map(category => ({
+            ...category,
+            sub_categories: category.sub_categories.map(subCategory => ({
+              ...subCategory,
+              menu_items: subCategory.menu_items.map(item => 
+                item.id === variables.id 
+                  ? { 
+                      ...item, 
+                      name: data.updateMenuItem.name,
+                      description: data.updateMenuItem.description,
+                      price: data.updateMenuItem.price
+                    }
+                  : item
+              )
+            }))
+          }))
+        };
+      });
+
+      setMenus(updatedMenus);
+      updateMenus(updatedMenus);
+      
+      // Invalidate and refetch for other components
+      queryClient.invalidateQueries({ queryKey: ['menus'] });
+      
+      toast({
+        title: "Success",
+        description: `Menu item "${data.updateMenuItem.name}" updated successfully!`,
+      });
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ['menus'] });
+    },
+  });
+};
+
+/**
+ * Hook for updating menu item availability
+ * Provides optimistic updates and proper error handling
+ */
+export const useUpdateMenuItemAvailability = () => {
+  const queryClient = useQueryClient();
+  const client = useGraphQLClient();
+  const { handleError } = useGraphQLErrorHandler();
+  const [menus, setMenus] = useAtom(menusAtom);
+  const { updateMenus } = useMenuStorage();
+
+  return useMutation<UpdateMenuItemAvailabilityResponse, Error, UpdateMenuItemAvailabilityVariables>({
+    mutationFn: async (variables: UpdateMenuItemAvailabilityVariables) => {
+      const response = await client.request<UpdateMenuItemAvailabilityResponse>(UPDATE_MENU_ITEM_AVAILABILITY, variables);
+      return response;
+    },
+    onError: (err, variables) => {
+      const errorMessage = handleError(err, 'UpdateMenuItemAvailability');
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+    onSuccess: (data, variables) => {
+      // Update local storage and state immediately
+      const updatedMenus = menus.map(menu => {
+        return {
+          ...menu,
+          categories: menu.categories.map(category => ({
+            ...category,
+            sub_categories: category.sub_categories.map(subCategory => ({
+              ...subCategory,
+              menu_items: subCategory.menu_items.map(item => 
+                item.id === variables.id 
+                  ? { ...item, available: variables.available }
+                  : item
+              )
+            }))
+          }))
+        };
+      });
+
+      setMenus(updatedMenus);
+      updateMenus(updatedMenus);
+      
+      // Invalidate and refetch for other components
+      queryClient.invalidateQueries({ queryKey: ['menus'] });
+      
+      const status = variables.available ? 'available' : 'unavailable';
+      toast({
+        title: "Success",
+        description: `Menu item "${data.updateMenuItem.name}" marked as ${status}!`,
+      });
     },
     onSettled: () => {
       // Always refetch after error or success

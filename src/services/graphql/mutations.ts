@@ -64,4 +64,49 @@ export const INSERT_MULTIPLE_MENU_ITEMS = `
       errors
     }
   }
+`;
+
+// ============================================================================
+// UPDATE MENU ITEM MUTATION
+// ============================================================================
+
+export const UPDATE_MENU_ITEM = `
+  mutation UpdateMenuItem(
+    $id: ID!
+    $name: String
+    $description: String
+    $price: Float
+  ) {
+    updateMenuItem(
+      id: $id
+      name: $name
+      description: $description
+      price: $price
+    ) {
+      id
+      name
+      description
+      price
+    }
+  }
+`;
+
+// ============================================================================
+// UPDATE MENU ITEM AVAILABILITY MUTATION
+// ============================================================================
+
+export const UPDATE_MENU_ITEM_AVAILABILITY = `
+  mutation UpdateMenuItemAvailibility(
+    $id: ID!
+    $available: Boolean
+  ) {
+    updateMenuItem(
+      id: $id
+      available: $available
+    ) {
+      id
+      name
+      available
+    }
+  }
 `; 

@@ -90,7 +90,7 @@ export interface CategoryInput {
  * GetMenusWithItems Query Variables
  */
 export interface GetMenusWithItemsVariables {
-  restaurantId: string;
+  // No variables needed for the new query structure
 }
 
 /**
@@ -171,6 +171,47 @@ export interface InsertMultipleMenuItemsResponse {
       message: string;
       menuId: string;
       errors: string[] | null;
+  };
+}
+
+/**
+ * UpdateMenuItem Mutation Variables
+ */
+export interface UpdateMenuItemVariables {
+  id: string;
+  name?: string;
+  description?: string;
+  price?: number;
+}
+
+/**
+ * UpdateMenuItem Mutation Response
+ */
+export interface UpdateMenuItemResponse {
+  updateMenuItem: {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+  };
+}
+
+/**
+ * UpdateMenuItemAvailability Mutation Variables
+ */
+export interface UpdateMenuItemAvailabilityVariables {
+  id: string;
+  available: boolean;
+}
+
+/**
+ * UpdateMenuItemAvailability Mutation Response
+ */
+export interface UpdateMenuItemAvailabilityResponse {
+  updateMenuItem: {
+    id: string;
+    name: string;
+    available: boolean;
   };
 }
 
