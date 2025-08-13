@@ -19,7 +19,10 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { generateDescriptionAction } from '@/app/actions';
-import { Loader2, PlusCircle, Save, Trash2, Wand2, ChevronsUpDown, CirclePlus } from 'lucide-react';
+import { useInsertMultipleMenuItems } from '@/hooks/graphql';
+import { useRouter } from 'next/navigation';
+import { GraphQLButton } from '@/components/ui/graphql-loading';
+import { PlusCircle, Save, Trash2, Wand2, ChevronsUpDown, CirclePlus, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
@@ -34,6 +37,7 @@ export const menuItemSchema = z.object({
 
 const menuFormSchema = z.object({
   menuName: z.string().min(1, 'Menu name is required.'),
+  menuDescription: z.string().optional(),
   items: z.array(menuItemSchema).min(1, 'Please add at least one menu item.'),
 });
 
@@ -48,6 +52,10 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [generatingStates, setGeneratingStates] = useState<{ [key: number]: boolean }>({});
   
+  // GraphQL mutations
+  const insertMultipleMenuItems = useInsertMultipleMenuItems();
+  const router = useRouter();
+  
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState<Record<number, boolean>>({});
   const [subcategoryPopoverOpen, setSubcategoryPopoverOpen] = useState<Record<number, boolean>>({});
 
@@ -55,6 +63,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
     resolver: zodResolver(menuFormSchema),
     defaultValues: {
       menuName: '',
+      menuDescription: '',
       items: [{ dishName: '', price: 0, description: '', category: '', subcategory: '' }],
     },
     mode: 'onBlur',
@@ -130,15 +139,59 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
     setIsSaving(true);
     console.log('Menu Data:', data);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      // Transform menu items to match the expected structure
+      const menuItems = data.items.map(item => ({
+        name: item.dishName,
+        description: item.description,
+        price: item.price,
+        image_url: '', // Default empty image URL
+        available: true,
+        category: item.category || '',
+        sub_category: item.subcategory || '',
+      }));
+
+      // Call the mutation with the new structure
+      const result = await insertMultipleMenuItems.mutateAsync({
+        input: {
+          menuName: data.menuName,
+          descriptions: data.menuDescription || '',
+          menuItems: menuItems,
+        },
+      });
+      // Check if the mutation was successful
+      if (result.insertMultipleMenuItems.success) {
     
-    toast({
-      title: 'Menu Saved!',
-      description: `Your '${data.menuName}' menu has been successfully created.`,
-    });
-    setIsSaving(false);
-    onMenuSaved(data);
+        toast({
+          title: 'Menu Saved!',
+          description: result.insertMultipleMenuItems.message || `Your '${data.menuName}' menu has been successfully created.`,
+        });
+        
+        // Redirect to dashboard
+        router.push('/dashboard');
+      } else {
+        // Handle errors from the mutation
+        const errors = result.insertMultipleMenuItems.errors;
+        const errorMessage = errors && errors.length > 0 
+          ? errors.join(', ') 
+          : 'Failed to save menu. Please try again.';
+        
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error saving menu:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save menu. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -158,7 +211,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
              <CardHeader className="bg-muted/50 p-4">
                 <h3 className="font-headline text-xl text-primary">Menu Details</h3>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-6 space-y-6">
                 <FormField
                     control={form.control}
                     name="menuName"
@@ -167,6 +220,19 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
                         <FormLabel className="text-base">Menu Name</FormLabel>
                         <FormControl>
                         <Input placeholder="e.g., Dinner Menu, Cocktails, Desserts" {...field} className="text-base p-6 rounded-lg" />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="menuDescription"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="text-base">Menu Description</FormLabel>
+                        <FormControl>
+                        <Textarea placeholder="e.g. A curated selection of our signature dishes and timeless favorites." {...field} className="text-base p-4 rounded-lg min-h-[100px]" />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -535,15 +601,15 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
           
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t z-50">
              <div className="max-w-4xl mx-auto flex justify-end">
-                <Button 
+                <GraphQLButton 
                   type="submit" 
-                  size="lg" 
-                  disabled={isSaving}
+                  isLoading={isSaving || insertMultipleMenuItems.isPending}
+                  loadingText="Saving..."
                   className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg py-6 px-8 rounded-xl shadow-lg"
                 >
-                  {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
-                  {isSaving ? 'Saving...' : 'Save Menu'}
-                </Button>
+                  <Save className="mr-2 h-5 w-5" />
+                  Save Menu
+                </GraphQLButton>
               </div>
           </div>
         </form>

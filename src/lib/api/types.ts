@@ -57,6 +57,7 @@ export interface JWTPayload {
   userId: string;
   email: string;
   role: string;
+  menuId?: string; // Optional menuId field
   iat?: number;
   exp?: number;
 } 
