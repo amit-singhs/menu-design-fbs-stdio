@@ -29,8 +29,7 @@ import {
   FolderOpen
 } from 'lucide-react';
 import { useAtom } from 'jotai';
-import { selectedMenuAtom, menusAtom } from '@/lib/store/menu-store';
-import { useMenuStorage } from '@/hooks/use-local-storage';
+import { selectedMenuAtom, menusAtom, selectedMenuIdAtom } from '@/lib/store/menu-store';
 import { useUpdateMenuItem } from '@/hooks/graphql/use-menu-items';
 import type { Menu, Category, SubCategory, MenuItem } from '@/lib/store/menu-store';
 
@@ -40,8 +39,8 @@ interface MenuDetailViewProps {
 
 export function MenuDetailView({ onBack }: MenuDetailViewProps) {
   const [selectedMenu] = useAtom(selectedMenuAtom);
+  const [selectedMenuId] = useAtom(selectedMenuIdAtom);
   const [menus, setMenus] = useAtom(menusAtom);
-  const { updateMenus } = useMenuStorage();
   const updateMenuItem = useUpdateMenuItem();
   const [editingItem, setEditingItem] = useState<{
     type: 'category' | 'subcategory' | 'item';
@@ -73,19 +72,77 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
     if (!editingItem) return;
 
     if (editingItem.type === 'item') {
+      // Store original values for potential rollback
+      const originalItem = selectedMenu.categories
+        .flatMap(cat => cat.sub_categories)
+        .flatMap(sub => sub.menu_items)
+        .find(item => item.id === editingItem.id);
+
+      if (!originalItem) {
+        console.error('Original item not found for rollback');
+        setEditingItem(null);
+        return;
+      }
+
+      // Optimistic update - immediately update the UI
+      const updatedMenus = menus.map(menu => {
+        if (menu.id === selectedMenuId) {
+          return {
+            ...menu,
+            categories: menu.categories.map(category => ({
+              ...category,
+              sub_categories: category.sub_categories.map(subCategory => ({
+                ...subCategory,
+                menu_items: subCategory.menu_items.map(item => 
+                  item.id === editingItem.id 
+                    ? { 
+                        ...item, 
+                        name: editingItem.name,
+                        description: editingItem.description || '',
+                        price: editingItem.price || 0
+                      }
+                    : item
+                )
+              }))
+            }))
+          };
+        }
+        return menu;
+      });
+
+      // Update the state immediately
+      setMenus(updatedMenus);
+
       try {
         // Call the GraphQL mutation
-        const result = await updateMenuItem.mutateAsync({
+        await updateMenuItem.mutateAsync({
           id: editingItem.id,
           name: editingItem.name,
           description: editingItem.description,
           price: editingItem.price,
         });
-
-        // Local storage is now updated by the mutation hook
-        // No need to manually update here
       } catch (error) {
-        // Error is handled by the mutation hook
+        // If mutation fails, revert the optimistic update
+        const revertedMenus = menus.map(menu => {
+          if (menu.id === selectedMenuId) {
+            return {
+              ...menu,
+              categories: menu.categories.map(category => ({
+                ...category,
+                sub_categories: category.sub_categories.map(subCategory => ({
+                  ...subCategory,
+                  menu_items: subCategory.menu_items.map(item => 
+                    item.id === editingItem.id 
+                      ? originalItem // Revert to original state
+                      : item
+                  )
+                }))
+              }))
+            };
+          }
+          return menu;
+        });
+        setMenus(revertedMenus);
         console.error('Failed to update menu item:', error);
       }
     }

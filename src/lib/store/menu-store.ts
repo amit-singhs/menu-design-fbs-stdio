@@ -43,7 +43,21 @@ const storage = createJSONStorage<Menu[]>(() => {
 
 // Atoms for menu state management
 export const menusAtom = atomWithStorage<Menu[]>('menus', [], storage);
-export const selectedMenuAtom = atom<Menu | null>(null);
+export const selectedMenuIdAtom = atom<string | null>(null);
+
+// Derived atom that automatically updates selected menu when menus change
+export const selectedMenuAtom = atom(
+  (get) => {
+    const selectedMenuId = get(selectedMenuIdAtom);
+    const menus = get(menusAtom);
+    if (!selectedMenuId) return null;
+    return menus.find(menu => menu.id === selectedMenuId) || null;
+  },
+  (get, set, menu: Menu | null) => {
+    set(selectedMenuIdAtom, menu?.id || null);
+  }
+);
+
 export const isLoadingMenusAtom = atom<boolean>(false);
 export const menuErrorAtom = atom<string | null>(null);
 

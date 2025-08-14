@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Utensils } from 'lucide-react';
 import { useGetMenusWithItems } from '@/hooks/graphql/use-menus';
 import { useAtom } from 'jotai';
-import { menusAtom, selectedMenuAtom, getMenuItemCount } from '@/lib/store/menu-store';
-import { useMenuStorage } from '@/hooks/use-local-storage';
+import { menusAtom, selectedMenuAtom, selectedMenuIdAtom, getMenuItemCount } from '@/lib/store/menu-store';
 import type { Menu } from '@/lib/store/menu-store';
 
 interface MenuListProps {
@@ -56,8 +55,9 @@ export function MenuList({ onMenuSelect, title, description }: MenuListProps) {
   const router = useRouter();
   const [menus, setMenus] = useAtom(menusAtom);
   const [selectedMenu, setSelectedMenu] = useAtom(selectedMenuAtom);
-  const { menus: localMenus, updateMenus, hasMenus } = useMenuStorage();
+  const [selectedMenuId, setSelectedMenuId] = useAtom(selectedMenuIdAtom);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isClient, setIsClient] = useState(false);
   
   // Always enable the query, but we'll control when to show loading
   const { data, isLoading, error, refetch } = useGetMenusWithItems({
@@ -65,13 +65,10 @@ export function MenuList({ onMenuSelect, title, description }: MenuListProps) {
     refetchOnWindowFocus: false,
   });
 
-  // Initialize with local storage data first
+  // Ensure we're on the client side to prevent hydration issues
   useEffect(() => {
-    if (isInitialLoad && localMenus.length > 0) {
-      setMenus(localMenus);
-      setIsInitialLoad(false);
-    }
-  }, [isInitialLoad, localMenus, setMenus]);
+    setIsClient(true);
+  }, []);
 
   // Update local storage and state when GraphQL data changes
   useEffect(() => {
@@ -91,18 +88,9 @@ export function MenuList({ onMenuSelect, title, description }: MenuListProps) {
       }));
       
       setMenus(fetchedMenus);
-      updateMenus(fetchedMenus);
       setIsInitialLoad(false);
     }
-  }, [data, setMenus, updateMenus]);
-
-  // Handle case when local storage is cleared - force refetch
-  useEffect(() => {
-    if (!isInitialLoad && !hasMenus() && !isLoading) {
-      // If we don't have local data and we're not loading, force a refetch
-      refetch();
-    }
-  }, [isInitialLoad, hasMenus, isLoading, refetch]);
+  }, [data, setMenus, setIsInitialLoad]);
 
   // Force refresh when needed (e.g., after mutations)
   const handleForceRefresh = () => {
@@ -110,21 +98,22 @@ export function MenuList({ onMenuSelect, title, description }: MenuListProps) {
     refetch();
   };
 
-  // Auto-refresh when component mounts to ensure data is up to date
-  useEffect(() => {
-    if (!isInitialLoad && hasMenus()) {
-      // If we have local data, do a background refresh
-      refetch();
-    }
-  }, []); // Only run once on mount
-
   const handleMenuSelect = (menu: Menu) => {
-    setSelectedMenu(menu);
+    setSelectedMenuId(menu.id);
     onMenuSelect(menu);
   };
 
   // Show loading only if we're fetching from API and don't have local data
-  if (isLoading && !hasMenus()) {
+  if (!isClient) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  if (isLoading && !menus.length) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -133,7 +122,7 @@ export function MenuList({ onMenuSelect, title, description }: MenuListProps) {
     );
   }
 
-  if (error && shouldFetchFromAPI && !hasMenus()) {
+  if (error && !menus.length) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <p className="text-destructive">Failed to load menus</p>

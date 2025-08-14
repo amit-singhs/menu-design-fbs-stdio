@@ -21,8 +21,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { useAtom } from 'jotai';
-import { selectedMenuAtom, menusAtom } from '@/lib/store/menu-store';
-import { useMenuStorage } from '@/hooks/use-local-storage';
+import { selectedMenuAtom, menusAtom, selectedMenuIdAtom } from '@/lib/store/menu-store';
 import { useUpdateMenuItemAvailability } from '@/hooks/graphql/use-menu-items';
 import type { Menu, Category, SubCategory, MenuItem } from '@/lib/store/menu-store';
 
@@ -32,8 +31,8 @@ interface MenuAvailabilityViewProps {
 
 export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
   const [selectedMenu] = useAtom(selectedMenuAtom);
+  const [selectedMenuId] = useAtom(selectedMenuIdAtom);
   const [menus, setMenus] = useAtom(menusAtom);
-  const { updateMenus } = useMenuStorage();
   const updateMenuItemAvailability = useUpdateMenuItemAvailability();
 
   if (!selectedMenu) {
@@ -46,14 +45,58 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
   }
 
   const handleAvailabilityChange = async (itemId: string, newAvailability: boolean) => {
+    // Optimistic update - immediately update the UI
+    const updatedMenus = menus.map(menu => {
+      if (menu.id === selectedMenuId) {
+        return {
+          ...menu,
+          categories: menu.categories.map(category => ({
+            ...category,
+            sub_categories: category.sub_categories.map(subCategory => ({
+              ...subCategory,
+              menu_items: subCategory.menu_items.map(item => 
+                item.id === itemId 
+                  ? { ...item, available: newAvailability }
+                  : item
+              )
+            }))
+          }))
+        };
+      }
+      return menu;
+    });
+
+    // Update the state immediately
+    setMenus(updatedMenus);
+
     try {
-      // Call the GraphQL mutation - local storage will be updated by the mutation hook
+      // Call the GraphQL mutation
       await updateMenuItemAvailability.mutateAsync({
         id: itemId,
         available: newAvailability,
       });
     } catch (error) {
-      // Error is handled by the mutation hook
+      // If mutation fails, revert the optimistic update
+      const revertedMenus = menus.map(menu => {
+        if (menu.id === selectedMenuId) {
+          return {
+            ...menu,
+            categories: menu.categories.map(category => ({
+              ...category,
+              sub_categories: category.sub_categories.map(subCategory => ({
+                ...subCategory,
+                menu_items: subCategory.menu_items.map(item => 
+                  item.id === itemId 
+                    ? { ...item, available: !newAvailability } // Revert to original state
+                    : item
+                )
+              }))
+            }))
+          };
+        }
+        return menu;
+      });
+      setMenus(revertedMenus);
       console.error('Failed to update item availability:', error);
     }
   };
