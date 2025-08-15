@@ -4,8 +4,13 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { INSERT_CATEGORY } from '@/services/graphql/mutations';
-import { InsertCategoryVariables, InsertCategoryResponse } from '@/lib/graphql/types';
+import { INSERT_CATEGORY, INSERT_SUB_CATEGORY } from '@/services/graphql/mutations';
+import { 
+  InsertCategoryVariables, 
+  InsertCategoryResponse,
+  InsertSubCategoryVariables,
+  InsertSubCategoryResponse
+} from '@/lib/graphql/types';
 import { useGraphQLClient } from '@/lib/graphql/client';
 import { useGraphQLErrorHandler } from '@/lib/graphql/error-handler';
 import { toast } from '@/hooks/use-toast';
@@ -46,7 +51,6 @@ export const useInsertCategory = () => {
                   categories: [
                     ...menu.categories,
                     {
-                      id: `temp-${Date.now()}`, // Temporary ID for optimistic update
                       name: variables.name,
                       sub_categories: [],
                       menu_items: [], // Add empty menu_items array for items directly under category
@@ -83,6 +87,91 @@ export const useInsertCategory = () => {
       toast({
         title: "Success",
         description: `Category "${variables.name}" created successfully!`,
+      });
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ['menus'] });
+    },
+  });
+};
+
+/**
+ * Hook for inserting a new subcategory
+ * Provides optimistic updates and proper error handling
+ */
+export const useInsertSubCategory = () => {
+  const queryClient = useQueryClient();
+  const client = useGraphQLClient();
+  const { handleError } = useGraphQLErrorHandler();
+
+  return useMutation<InsertSubCategoryResponse, Error, InsertSubCategoryVariables>({
+    mutationFn: async (variables: InsertSubCategoryVariables) => {
+      const response = await client.request<InsertSubCategoryResponse>(INSERT_SUB_CATEGORY, variables);
+      return response;
+    },
+    onMutate: async (variables) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['menus'] });
+
+      // Snapshot the previous value
+      const previousMenus = queryClient.getQueryData(['menus']);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(['menus'], (old: any) => {
+        if (!old?.data?.menus) return old;
+        
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            menus: old.data.menus.map((menu: any) => {
+              return {
+                ...menu,
+                categories: menu.categories.map((category: any) => {
+                  if (category.id === variables.category_id) {
+                    return {
+                      ...category,
+                      sub_categories: [
+                        ...category.sub_categories,
+                        {
+                          name: variables.name,
+                          menu_items: [],
+                        }
+                      ]
+                    };
+                  }
+                  return category;
+                })
+              };
+            })
+          }
+        };
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousMenus };
+    },
+    onError: (err, variables, context: any) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousMenus) {
+        queryClient.setQueryData(['menus'], context.previousMenus);
+      }
+      
+      const errorMessage = handleError(err, 'InsertSubCategory');
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ['menus'] });
+      
+      toast({
+        title: "Success",
+        description: `Subcategory "${variables.name}" created successfully!`,
       });
     },
     onSettled: () => {

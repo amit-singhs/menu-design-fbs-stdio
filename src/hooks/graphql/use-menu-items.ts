@@ -58,7 +58,6 @@ export const useInsertMenuItem = () => {
                 categories: menu.categories.map((category: any) => {
                   if (category.id === variables.category_id) {
                     const newItem = {
-                      id: `temp-${Date.now()}`,
                       name: variables.name,
                       description: variables.description || '',
                       price: variables.price,

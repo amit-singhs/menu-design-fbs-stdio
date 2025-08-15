@@ -30,7 +30,7 @@ export const INSERT_MENU_ITEM = `
     $price: Float!
     $image_url: String
     $available: Boolean
-    $category_id: ID
+    $category_id: ID!
     $sub_category_id: ID
   ) {
     insertMenuItem(
@@ -47,6 +47,20 @@ export const INSERT_MENU_ITEM = `
       price
       category_id
       sub_category_id
+    }
+  }
+`;
+
+// ============================================================================
+// INSERT SUB CATEGORY MUTATION
+// ============================================================================
+
+export const INSERT_SUB_CATEGORY = `
+  mutation InsertSubCategory($category_id: ID!, $name: String!) {
+    insertSubCategory(category_id: $category_id, name: $name) {
+      id
+      name
+      category_id
     }
   }
 `;

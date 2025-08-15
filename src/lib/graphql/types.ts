@@ -137,7 +137,7 @@ export interface InsertMenuItemVariables {
   price: number;
   image_url?: string;
   available?: boolean;
-  category_id?: string;
+  category_id: string;
   sub_category_id?: string | null;
 }
 
@@ -152,6 +152,27 @@ export interface InsertMenuItemResponse {
       price: number;
       category_id: string;
       sub_category_id: string | null;
+    };
+  };
+}
+
+/**
+ * InsertSubCategory Mutation Variables
+ */
+export interface InsertSubCategoryVariables {
+  category_id: string;
+  name: string;
+}
+
+/**
+ * InsertSubCategory Mutation Response
+ */
+export interface InsertSubCategoryResponse {
+  data: {
+    insertSubCategory: {
+      id: string;
+      name: string;
+      category_id: string;
     };
   };
 }
