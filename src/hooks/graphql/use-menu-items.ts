@@ -4,7 +4,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { INSERT_MENU_ITEM, INSERT_MULTIPLE_MENU_ITEMS, UPDATE_MENU_ITEM, UPDATE_MENU_ITEM_AVAILABILITY } from '@/services/graphql/mutations';
+import { INSERT_MENU_ITEM, INSERT_MULTIPLE_MENU_ITEMS, UPDATE_MENU_ITEM, UPDATE_MENU_ITEM_AVAILABILITY, DELETE_MENU_ITEM } from '@/services/graphql/mutations';
 import { 
   InsertMenuItemVariables, 
   InsertMenuItemResponse,
@@ -13,7 +13,9 @@ import {
   UpdateMenuItemVariables,
   UpdateMenuItemResponse,
   UpdateMenuItemAvailabilityVariables,
-  UpdateMenuItemAvailabilityResponse
+  UpdateMenuItemAvailabilityResponse,
+  DeleteMenuItemVariables,
+  DeleteMenuItemResponse
 } from '@/lib/graphql/types';
 import { useGraphQLClient } from '@/lib/graphql/client';
 import { useGraphQLErrorHandler } from '@/lib/graphql/error-handler';
@@ -55,30 +57,44 @@ export const useInsertMenuItem = () => {
                 ...menu,
                 categories: menu.categories.map((category: any) => {
                   if (category.id === variables.category_id) {
-                    return {
-                      ...category,
-                      sub_categories: category.sub_categories.map((subCategory: any) => {
-                        if (subCategory.id === variables.sub_category_id) {
-                          return {
-                            ...subCategory,
-                            menu_items: [
-                              ...subCategory.menu_items,
-                              {
-                                id: `temp-${Date.now()}`,
-                                name: variables.name,
-                                description: variables.description || '',
-                                price: variables.price,
-                                image_url: variables.image_url,
-                                available: variables.available ?? true,
-                                category_id: variables.category_id,
-                                sub_category_id: variables.sub_category_id,
-                              }
-                            ]
-                          };
-                        }
-                        return subCategory;
-                      })
+                    const newItem = {
+                      id: `temp-${Date.now()}`,
+                      name: variables.name,
+                      description: variables.description || '',
+                      price: variables.price,
+                      image_url: variables.image_url,
+                      available: variables.available ?? true,
+                      category_id: variables.category_id,
+                      sub_category_id: variables.sub_category_id,
                     };
+
+                    // If sub_category_id is provided, add to subcategory
+                    if (variables.sub_category_id) {
+                      return {
+                        ...category,
+                        sub_categories: category.sub_categories.map((subCategory: any) => {
+                          if (subCategory.id === variables.sub_category_id) {
+                            return {
+                              ...subCategory,
+                              menu_items: [
+                                ...subCategory.menu_items,
+                                newItem
+                              ]
+                            };
+                          }
+                          return subCategory;
+                        })
+                      };
+                    } else {
+                      // If no sub_category_id, add directly to category
+                      return {
+                        ...category,
+                        menu_items: [
+                          ...(category.menu_items || []),
+                          newItem
+                        ]
+                      };
+                    }
                   }
                   return category;
                 })
@@ -205,6 +221,39 @@ export const useUpdateMenuItemAvailability = () => {
       toast({
         title: "Success",
         description: `Menu item "${data.updateMenuItem.name}" marked as ${status}!`,
+      });
+    },
+  });
+};
+
+/**
+ * Hook for deleting a menu item
+ * Provides optimistic updates and proper error handling
+ */
+export const useDeleteMenuItem = () => {
+  const queryClient = useQueryClient();
+  const client = useGraphQLClient();
+  const { handleError } = useGraphQLErrorHandler();
+  const [menus, setMenus] = useAtom(menusAtom);
+
+  return useMutation<DeleteMenuItemResponse, Error, DeleteMenuItemVariables>({
+    mutationFn: async (variables: DeleteMenuItemVariables) => {
+      const response = await client.request<DeleteMenuItemResponse>(DELETE_MENU_ITEM, variables);
+      return response;
+    },
+    onError: (err, variables) => {
+      const errorMessage = handleError(err, 'DeleteMenuItem');
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+    onSuccess: (data, variables) => {
+      // State is already updated optimistically, just show success message
+      toast({
+        title: "Success",
+        description: `Menu item "${data.deleteMenuItem.name}" deleted successfully!`,
       });
     },
   });

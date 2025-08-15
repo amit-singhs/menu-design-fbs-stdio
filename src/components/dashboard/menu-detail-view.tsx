@@ -19,6 +19,16 @@ import {
   DialogTitle, 
   DialogTrigger 
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { 
   Edit, 
   Trash2, 
@@ -26,11 +36,11 @@ import {
   ArrowLeft, 
   DollarSign,
   Package,
-  FolderOpen
+  Layers
 } from 'lucide-react';
 import { useAtom } from 'jotai';
 import { selectedMenuAtom, menusAtom, selectedMenuIdAtom } from '@/lib/store/menu-store';
-import { useUpdateMenuItem } from '@/hooks/graphql/use-menu-items';
+import { useUpdateMenuItem, useDeleteMenuItem } from '@/hooks/graphql/use-menu-items';
 import type { Menu, Category, SubCategory, MenuItem } from '@/lib/store/menu-store';
 
 interface MenuDetailViewProps {
@@ -42,12 +52,18 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
   const [selectedMenuId] = useAtom(selectedMenuIdAtom);
   const [menus, setMenus] = useAtom(menusAtom);
   const updateMenuItem = useUpdateMenuItem();
+  const deleteMenuItem = useDeleteMenuItem();
+  const [loadingItems, setLoadingItems] = useState<Set<string>>(new Set());
   const [editingItem, setEditingItem] = useState<{
     type: 'category' | 'subcategory' | 'item';
     id: string;
     name: string;
     description?: string;
     price?: number;
+  } | null>(null);
+  const [deletingItem, setDeletingItem] = useState<{
+    id: string;
+    name: string;
   } | null>(null);
 
   if (!selectedMenu) {
@@ -63,24 +79,90 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
     setEditingItem({ type, id, ...data });
   };
 
-  const handleDelete = (type: 'category' | 'subcategory' | 'item', id: string) => {
-    // TODO: Implement delete functionality with GraphQL mutation
-    console.log(`Delete ${type} with id:`, id);
+  const handleDelete = (type: 'category' | 'subcategory' | 'item', id: string, name: string) => {
+    if (type === 'item') {
+      setDeletingItem({ id, name });
+    } else {
+      // TODO: Implement delete functionality for categories and subcategories
+      console.log(`Delete ${type} with id:`, id);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingItem) return;
+
+    const { id, name } = deletingItem;
+
+    // Set loading state for this specific item
+    setLoadingItems(prev => new Set(prev).add(id));
+
+    // Store original menus for potential rollback
+    const originalMenus = menus;
+
+    // Optimistic update - immediately remove the item from UI
+    const updatedMenus = menus.map(menu => {
+      if (menu.id === selectedMenuId) {
+        return {
+          ...menu,
+          categories: menu.categories.map(category => ({
+            ...category,
+            // Remove item from category's direct menu_items
+            menu_items: category.menu_items?.filter(item => item.id !== id) || [],
+            sub_categories: category.sub_categories.map(subCategory => ({
+              ...subCategory,
+              menu_items: subCategory.menu_items.filter(item => item.id !== id)
+            })).filter(subCategory => subCategory.menu_items.length > 0) // Remove empty subcategories
+          })).filter(category => 
+            (category.menu_items && category.menu_items.length > 0) || 
+            category.sub_categories.length > 0
+          ) // Remove empty categories
+        };
+      }
+      return menu;
+    });
+
+    // Update the state immediately
+    setMenus(updatedMenus);
+
+    try {
+      // Call the GraphQL mutation
+      await deleteMenuItem.mutateAsync({ id });
+    } catch (error) {
+      // If mutation fails, revert the optimistic update
+      setMenus(originalMenus);
+      console.error('Failed to delete menu item:', error);
+    } finally {
+      // Clear loading state for this specific item
+      setLoadingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
+      // Close the delete confirmation dialog
+      setDeletingItem(null);
+    }
   };
 
   const handleSave = async () => {
     if (!editingItem) return;
 
     if (editingItem.type === 'item') {
+      // Set loading state for this specific item
+      setLoadingItems(prev => new Set(prev).add(editingItem.id));
+
       // Store original values for potential rollback
       const originalItem = selectedMenu.categories
-        .flatMap(cat => cat.sub_categories)
-        .flatMap(sub => sub.menu_items)
+        .flatMap(cat => [...(cat.menu_items || []), ...cat.sub_categories.flatMap(sub => sub.menu_items)])
         .find(item => item.id === editingItem.id);
 
       if (!originalItem) {
         console.error('Original item not found for rollback');
         setEditingItem(null);
+        setLoadingItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(editingItem.id);
+          return newSet;
+        });
         return;
       }
 
@@ -91,6 +173,17 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
             ...menu,
             categories: menu.categories.map(category => ({
               ...category,
+              // Update items directly under category
+              menu_items: category.menu_items?.map(item => 
+                item.id === editingItem.id 
+                  ? { 
+                      ...item, 
+                      name: editingItem.name,
+                      description: editingItem.description || '',
+                      price: editingItem.price || 0
+                    }
+                  : item
+              ) || [],
               sub_categories: category.sub_categories.map(subCategory => ({
                 ...subCategory,
                 menu_items: subCategory.menu_items.map(item => 
@@ -129,6 +222,12 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
               ...menu,
               categories: menu.categories.map(category => ({
                 ...category,
+                // Revert items directly under category
+                menu_items: category.menu_items?.map(item => 
+                  item.id === editingItem.id 
+                    ? originalItem // Revert to original state
+                    : item
+                ) || [],
                 sub_categories: category.sub_categories.map(subCategory => ({
                   ...subCategory,
                   menu_items: subCategory.menu_items.map(item => 
@@ -144,6 +243,13 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
         });
         setMenus(revertedMenus);
         console.error('Failed to update menu item:', error);
+      } finally {
+        // Clear loading state for this specific item
+        setLoadingItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(editingItem.id);
+          return newSet;
+        });
       }
     }
     
@@ -174,16 +280,26 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
             description: item.description,
             price: item.price
           })}
+          disabled={loadingItems.has(item.id)}
         >
-          <Edit className="h-4 w-4" />
+          {loadingItems.has(item.id) ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          ) : (
+            <Edit className="h-4 w-4" />
+          )}
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => handleDelete('item', item.id)}
+          onClick={() => handleDelete('item', item.id, item.name)}
           className="text-destructive hover:text-destructive"
+          disabled={loadingItems.has(item.id)}
         >
-          <Trash2 className="h-4 w-4" />
+          {loadingItems.has(item.id) ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-destructive border-t-transparent" />
+          ) : (
+            <Trash2 className="h-4 w-4" />
+          )}
         </Button>
       </div>
     </div>
@@ -193,7 +309,7 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
     <AccordionItem key={subcategory.id} value={subcategory.id}>
       <AccordionTrigger className="text-lg font-semibold hover:no-underline">
         <div className="flex items-center gap-2">
-          <FolderOpen className="h-4 w-4" />
+          <Layers className="h-4 w-4" />
           {subcategory.name}
         </div>
       </AccordionTrigger>
@@ -219,9 +335,10 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
       </AccordionTrigger>
       <AccordionContent className="pl-4 space-y-4">
         {/* Items directly under category */}
-        {category.sub_categories.length === 0 && (
+        {category.menu_items && category.menu_items.length > 0 && (
           <div className="space-y-2">
-            {category.menu_items?.map(item => 
+            <h4 className="font-medium text-sm text-muted-foreground">Items in {category.name}</h4>
+            {category.menu_items.map(item => 
               renderMenuItem(item, category.id)
             )}
           </div>
@@ -229,11 +346,14 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
 
         {/* Subcategories */}
         {category.sub_categories.length > 0 && (
-          <Accordion type="multiple" className="w-full">
-            {category.sub_categories.map(subcategory => 
-              renderSubCategory(subcategory, category.id)
-            )}
-          </Accordion>
+          <div className="space-y-2">
+            <h4 className="font-medium text-sm text-muted-foreground">Subcategories</h4>
+            <Accordion type="multiple" className="w-full">
+              {category.sub_categories.map(subcategory => 
+                renderSubCategory(subcategory, category.id)
+              )}
+            </Accordion>
+          </div>
         )}
 
         <div className="flex gap-2 pt-2">
@@ -337,20 +457,47 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
               <Button 
                 variant="outline" 
                 onClick={() => setEditingItem(null)}
-                disabled={updateMenuItem.isPending}
+                disabled={editingItem && loadingItems.has(editingItem.id)}
               >
                 Cancel
               </Button>
               <Button 
                 onClick={handleSave}
-                disabled={updateMenuItem.isPending}
+                disabled={editingItem && loadingItems.has(editingItem.id)}
               >
-                {updateMenuItem.isPending ? 'Saving...' : 'Save Changes'}
+                {editingItem && loadingItems.has(editingItem.id) ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingItem} onOpenChange={(open) => !open && setDeletingItem(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Menu Item</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>"{deletingItem?.name}"</strong>? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              disabled={deletingItem && loadingItems.has(deletingItem.id)}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deletingItem && loadingItems.has(deletingItem.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingItem && loadingItems.has(deletingItem.id) ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 } 

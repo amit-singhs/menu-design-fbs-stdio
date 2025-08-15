@@ -109,4 +109,17 @@ export const UPDATE_MENU_ITEM_AVAILABILITY = `
       available
     }
   }
-`; 
+`;
+
+// ============================================================================
+// DELETE MENU ITEM MUTATION
+// ============================================================================
+
+export const DELETE_MENU_ITEM = `
+  mutation DeleteMenuItem($id: ID!) {
+    deleteMenuItem(id: $id) {
+      id
+      name
+    }
+  }
+`;

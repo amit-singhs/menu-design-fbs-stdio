@@ -18,6 +18,13 @@ export const GET_MENUS_WITH_ITEMS = gql`
       categories {
         id
         name
+        menu_items {
+          id
+          name
+          description
+          price
+          available
+        }
         sub_categories {
           id
           name

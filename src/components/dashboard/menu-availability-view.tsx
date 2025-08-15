@@ -16,7 +16,7 @@ import {
   ArrowLeft, 
   DollarSign,
   Package,
-  FolderOpen,
+  Layers,
   CheckCircle,
   XCircle
 } from 'lucide-react';
@@ -33,6 +33,7 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
   const [selectedMenu] = useAtom(selectedMenuAtom);
   const [selectedMenuId] = useAtom(selectedMenuIdAtom);
   const [menus, setMenus] = useAtom(menusAtom);
+  const [loadingItems, setLoadingItems] = useState<Set<string>>(new Set());
   const updateMenuItemAvailability = useUpdateMenuItemAvailability();
 
   if (!selectedMenu) {
@@ -45,6 +46,9 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
   }
 
   const handleAvailabilityChange = async (itemId: string, newAvailability: boolean) => {
+    // Set loading state for this specific item
+    setLoadingItems(prev => new Set(prev).add(itemId));
+
     // Optimistic update - immediately update the UI
     const updatedMenus = menus.map(menu => {
       if (menu.id === selectedMenuId) {
@@ -52,6 +56,12 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
           ...menu,
           categories: menu.categories.map(category => ({
             ...category,
+            // Update items directly under category
+            menu_items: category.menu_items?.map(item => 
+              item.id === itemId 
+                ? { ...item, available: newAvailability }
+                : item
+            ) || [],
             sub_categories: category.sub_categories.map(subCategory => ({
               ...subCategory,
               menu_items: subCategory.menu_items.map(item => 
@@ -83,13 +93,19 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
             ...menu,
             categories: menu.categories.map(category => ({
               ...category,
+              // Revert items directly under category
+              menu_items: category.menu_items?.map(item => 
+                item.id === itemId 
+                  ? { ...item, available: !newAvailability } // Revert to original state
+                  : item
+              ) || [],
               sub_categories: category.sub_categories.map(subCategory => ({
                 ...subCategory,
                 menu_items: subCategory.menu_items.map(item => 
                   item.id === itemId 
                     ? { ...item, available: !newAvailability } // Revert to original state
                     : item
-                )
+                  )
               }))
             }))
           };
@@ -98,6 +114,13 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
       });
       setMenus(revertedMenus);
       console.error('Failed to update item availability:', error);
+    } finally {
+      // Clear loading state for this specific item
+      setLoadingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(itemId);
+        return newSet;
+      });
     }
   };
 
@@ -122,12 +145,12 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
             id={`availability-${item.id}`}
             checked={item.available !== false} // Default to true if not set
             onCheckedChange={(checked) => handleAvailabilityChange(item.id, checked)}
-            disabled={updateMenuItemAvailability.isPending}
+            disabled={loadingItems.has(item.id)}
           />
           <Label htmlFor={`availability-${item.id}`} className="sr-only">
             Toggle availability for {item.name}
           </Label>
-          {updateMenuItemAvailability.isPending && (
+          {loadingItems.has(item.id) && (
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           )}
           <Badge 
@@ -155,7 +178,7 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
     <AccordionItem key={subcategory.id} value={subcategory.id}>
       <AccordionTrigger className="text-lg font-semibold hover:no-underline">
         <div className="flex items-center gap-2">
-          <FolderOpen className="h-4 w-4" />
+          <Layers className="h-4 w-4" />
           {subcategory.name}
         </div>
       </AccordionTrigger>
@@ -177,9 +200,10 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
       </AccordionTrigger>
       <AccordionContent className="pl-4 space-y-4">
         {/* Items directly under category */}
-        {category.sub_categories.length === 0 && (
+        {category.menu_items && category.menu_items.length > 0 && (
           <div className="space-y-2">
-            {category.menu_items?.map(item => 
+            <h4 className="font-medium text-sm text-muted-foreground">Items in {category.name}</h4>
+            {category.menu_items.map(item => 
               renderMenuItem(item, category.id)
             )}
           </div>
@@ -187,11 +211,14 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
 
         {/* Subcategories */}
         {category.sub_categories.length > 0 && (
-          <Accordion type="multiple" className="w-full">
-            {category.sub_categories.map(subcategory => 
-              renderSubCategory(subcategory, category.id)
-            )}
-          </Accordion>
+          <div className="space-y-2">
+            <h4 className="font-medium text-sm text-muted-foreground">Subcategories</h4>
+            <Accordion type="multiple" className="w-full">
+              {category.sub_categories.map(subcategory => 
+                renderSubCategory(subcategory, category.id)
+              )}
+            </Accordion>
+          </div>
         )}
       </AccordionContent>
     </AccordionItem>
@@ -199,6 +226,16 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
 
   // Count available and unavailable items
   const itemStats = selectedMenu.categories.reduce((stats, category) => {
+    // Count items directly under category
+    category.menu_items?.forEach(item => {
+      if (item.available !== false) {
+        stats.available++;
+      } else {
+        stats.unavailable++;
+      }
+    });
+    
+    // Count items under subcategories
     category.sub_categories.forEach(subCategory => {
       subCategory.menu_items.forEach(item => {
         if (item.available !== false) {

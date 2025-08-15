@@ -20,6 +20,7 @@ export interface Category {
   id: string;
   name: string;
   sub_categories: SubCategory[];
+  menu_items: MenuItem[]; // Add menu_items array for items directly under category
 }
 
 export interface Menu {
@@ -75,8 +76,12 @@ export const getMenuByIdAtom = atom(
 // Helper function to count total items in a menu
 export const getMenuItemCount = (menu: Menu): number => {
   return menu.categories.reduce((total, category) => {
-    return total + category.sub_categories.reduce((subTotal, subCategory) => {
+    // Count items directly under category
+    const categoryItems = category.menu_items?.length || 0;
+    // Count items under subcategories
+    const subcategoryItems = category.sub_categories.reduce((subTotal, subCategory) => {
       return subTotal + subCategory.menu_items.length;
     }, 0);
+    return total + categoryItems + subcategoryItems;
   }, 0);
 }; 

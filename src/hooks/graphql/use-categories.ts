@@ -49,6 +49,7 @@ export const useInsertCategory = () => {
                       id: `temp-${Date.now()}`, // Temporary ID for optimistic update
                       name: variables.name,
                       sub_categories: [],
+                      menu_items: [], // Add empty menu_items array for items directly under category
                     }
                   ]
                 };

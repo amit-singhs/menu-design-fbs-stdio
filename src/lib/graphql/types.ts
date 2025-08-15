@@ -37,6 +37,7 @@ export interface Category {
   id: string;
   name: string;
   sub_categories: SubCategory[];
+  menu_items: MenuItem[]; // Add menu_items array for items directly under category
 }
 
 /**
@@ -212,6 +213,23 @@ export interface UpdateMenuItemAvailabilityResponse {
     id: string;
     name: string;
     available: boolean;
+  };
+}
+
+/**
+ * DeleteMenuItem Mutation Variables
+ */
+export interface DeleteMenuItemVariables {
+  id: string;
+}
+
+/**
+ * DeleteMenuItem Mutation Response
+ */
+export interface DeleteMenuItemResponse {
+  deleteMenuItem: {
+    id: string;
+    name: string;
   };
 }
 

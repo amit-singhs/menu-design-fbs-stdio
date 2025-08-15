@@ -77,6 +77,11 @@ export function MenuList({ onMenuSelect, title, description }: MenuListProps) {
         ...menu,
         categories: menu.categories.map(category => ({
           ...category,
+          // Handle items directly under category
+          menu_items: category.menu_items?.map(item => ({
+            ...item,
+            available: item.available ?? true // Default to true if not set
+          })) || [],
           sub_categories: category.sub_categories.map(subCategory => ({
             ...subCategory,
             menu_items: subCategory.menu_items.map(item => ({
