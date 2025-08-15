@@ -42,7 +42,7 @@ import {
 import { useAtom } from 'jotai';
 import { selectedMenuAtom, menusAtom, selectedMenuIdAtom } from '@/lib/store/menu-store';
 import { useUpdateMenuItem, useDeleteMenuItem, useInsertMenuItem } from '@/hooks/graphql/use-menu-items';
-import { useInsertSubCategory } from '@/hooks/graphql/use-categories';
+import { useInsertCategory, useInsertSubCategory } from '@/hooks/graphql/use-categories';
 import type { Menu, Category, SubCategory, MenuItem } from '@/lib/store/menu-store';
 
 interface MenuDetailViewProps {
@@ -61,6 +61,7 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
   const updateMenuItem = useUpdateMenuItem();
   const deleteMenuItem = useDeleteMenuItem();
   const insertMenuItem = useInsertMenuItem();
+  const insertCategory = useInsertCategory();
   const insertSubCategory = useInsertSubCategory();
   const [loadingItems, setLoadingItems] = useState<Set<string>>(new Set());
   const [editingItem, setEditingItem] = useState<{
@@ -85,6 +86,7 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
     categoryId: string;
     categoryName: string;
   } | null>(null);
+  const [addingCategory, setAddingCategory] = useState<boolean>(false);
 
   if (!selectedMenu) {
     return (
@@ -357,6 +359,44 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
     }
   };
 
+  const handleSaveNewCategory = async (name: string) => {
+    if (!selectedMenuId) return;
+
+    // Create the new category object (without ID - backend will generate UUID)
+    const newCategory = {
+      name: name,
+      sub_categories: [],
+      menu_items: [],
+    };
+
+    // Optimistic update to local state
+    const updatedMenus = menus.map(menu => {
+      if (menu.id === selectedMenuId) {
+        return {
+          ...menu,
+          categories: [...menu.categories, newCategory]
+        };
+      }
+      return menu;
+    });
+
+    // Update local state immediately
+    setMenus(updatedMenus);
+
+    try {
+      await insertCategory.mutateAsync({
+        menu_id: selectedMenuId,
+        name: name,
+      });
+      
+      setAddingCategory(false);
+    } catch (error) {
+      // Revert optimistic update on error
+      setMenus(menus);
+      console.error('Failed to add category:', error);
+    }
+  };
+
   const handleSaveNewSubcategory = async (name: string) => {
     if (!addingSubcategory) return;
 
@@ -476,8 +516,8 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
     </AccordionItem>
   );
 
-  const renderCategory = (category: Category) => (
-    <AccordionItem key={category.id} value={category.id}>
+  const renderCategory = (category: Category, index?: number) => (
+    <AccordionItem key={category.id || `temp-category-${index}`} value={category.id || `temp-category-${index}`}>
       <AccordionTrigger className="text-xl font-headline hover:no-underline">
         <div className="flex items-center gap-2">
           <Package className="h-5 w-5" />
@@ -557,11 +597,15 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
         </CardHeader>
         <CardContent>
           <Accordion type="multiple" className="w-full">
-            {selectedMenu.categories.map(renderCategory)}
+            {selectedMenu.categories.map((category, index) => renderCategory(category, index))}
           </Accordion>
           
           <div className="mt-6 pt-4 border-t">
-            <Button variant="outline" className="w-full">
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => setAddingCategory(true)}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add New Category
             </Button>
@@ -674,6 +718,14 @@ export function MenuDetailView({ onBack }: MenuDetailViewProps) {
         addingSubcategory={addingSubcategory}
         onSave={handleSaveNewSubcategory}
         isLoading={insertSubCategory.isPending}
+      />
+
+      {/* Add Category Dialog */}
+      <AddCategoryDialog 
+        open={addingCategory} 
+        onOpenChange={setAddingCategory}
+        onSave={handleSaveNewCategory}
+        isLoading={insertCategory.isPending}
       />
     </div>
   );
@@ -851,6 +903,66 @@ function AddSubcategoryDialog({ open, onOpenChange, addingSubcategory, onSave, i
               disabled={isLoading || !name.trim()}
             >
               {isLoading ? 'Adding...' : 'Add Subcategory'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Add Category Dialog Component
+interface AddCategoryDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (name: string) => void;
+  isLoading: boolean;
+}
+
+function AddCategoryDialog({ open, onOpenChange, onSave, isLoading }: AddCategoryDialogProps) {
+  const [name, setName] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name.trim()) {
+      onSave(name.trim());
+      setName('');
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add New Category</DialogTitle>
+          <DialogDescription>
+            Create a new category for your menu. You can then add items directly to this category or create subcategories within it.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Category Name</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter category name"
+              required
+            />
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button 
+              type="button"
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit"
+              disabled={isLoading || !name.trim()}
+            >
+              {isLoading ? 'Adding...' : 'Add Category'}
             </Button>
           </div>
         </form>

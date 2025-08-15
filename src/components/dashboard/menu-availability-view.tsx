@@ -6,15 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription
-} from '@/components/ui/dialog';
+
 import { 
   Accordion, 
   AccordionContent, 
@@ -27,13 +19,11 @@ import {
   Package,
   Layers,
   CheckCircle,
-  XCircle,
-  Plus
+  XCircle
 } from 'lucide-react';
 import { useAtom } from 'jotai';
 import { selectedMenuAtom, menusAtom, selectedMenuIdAtom } from '@/lib/store/menu-store';
-import { useUpdateMenuItemAvailability, useInsertMenuItem } from '@/hooks/graphql/use-menu-items';
-import { useInsertSubCategory } from '@/hooks/graphql/use-categories';
+import { useUpdateMenuItemAvailability } from '@/hooks/graphql/use-menu-items';
 import type { Menu, Category, SubCategory, MenuItem } from '@/lib/store/menu-store';
 
 interface MenuAvailabilityViewProps {
@@ -51,19 +41,6 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
   const [menus, setMenus] = useAtom(menusAtom);
   const [loadingItems, setLoadingItems] = useState<Set<string>>(new Set());
   const updateMenuItemAvailability = useUpdateMenuItemAvailability();
-  const insertMenuItem = useInsertMenuItem();
-  const insertSubCategory = useInsertSubCategory();
-  const [addingItem, setAddingItem] = useState<{
-    type: 'category' | 'subcategory';
-    categoryId: string;
-    categoryName: string;
-    subcategoryId?: string;
-    subcategoryName?: string;
-  } | null>(null);
-  const [addingSubcategory, setAddingSubcategory] = useState<{
-    categoryId: string;
-    categoryName: string;
-  } | null>(null);
 
   if (!selectedMenu) {
     return (
@@ -74,130 +51,7 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
     );
   }
 
-  const handleAddItem = (type: 'category' | 'subcategory', categoryId: string, categoryName: string, subcategoryId?: string, subcategoryName?: string) => {
-    setAddingItem({ type, categoryId, categoryName, subcategoryId, subcategoryName });
-  };
 
-  const handleAddSubcategory = (categoryId: string, categoryName: string) => {
-    setAddingSubcategory({ categoryId, categoryName });
-  };
-
-  const handleSaveNewItem = async (formData: { name: string; description: string; price: number; image_url?: string }) => {
-    if (!addingItem) return;
-
-    // Create the new item object (without ID - backend will generate UUID)
-    const newItem = {
-      name: formData.name,
-      description: formData.description,
-      price: formData.price,
-      image_url: formData.image_url,
-      available: true,
-      category_id: addingItem.categoryId,
-      sub_category_id: addingItem.subcategoryId || null,
-    };
-
-    // Optimistic update to local state
-    const updatedMenus = menus.map(menu => {
-      if (menu.id === selectedMenuId) {
-        return {
-          ...menu,
-          categories: menu.categories.map(category => {
-            if (category.id === addingItem.categoryId) {
-              if (addingItem.subcategoryId) {
-                // Add to subcategory
-                return {
-                  ...category,
-                  sub_categories: category.sub_categories.map(subCategory => {
-                    if (subCategory.id === addingItem.subcategoryId) {
-                      return {
-                        ...subCategory,
-                        menu_items: [...subCategory.menu_items, newItem]
-                      };
-                    }
-                    return subCategory;
-                  })
-                };
-              } else {
-                // Add directly to category
-                return {
-                  ...category,
-                  menu_items: [...(category.menu_items || []), newItem]
-                };
-              }
-            }
-            return category;
-          })
-        };
-      }
-      return menu;
-    });
-
-    // Update local state immediately
-    setMenus(updatedMenus);
-
-    try {
-      await insertMenuItem.mutateAsync({
-        name: formData.name,
-        description: formData.description,
-        price: formData.price,
-        image_url: formData.image_url,
-        available: true,
-        category_id: addingItem.categoryId,
-        sub_category_id: addingItem.subcategoryId || null,
-      });
-      
-      setAddingItem(null);
-    } catch (error) {
-      // Revert optimistic update on error
-      setMenus(menus);
-      console.error('Failed to add menu item:', error);
-    }
-  };
-
-  const handleSaveNewSubcategory = async (name: string) => {
-    if (!addingSubcategory) return;
-
-    // Create the new subcategory object (without ID - backend will generate UUID)
-    const newSubcategory = {
-      name: name,
-      menu_items: [],
-    };
-
-    // Optimistic update to local state
-    const updatedMenus = menus.map(menu => {
-      if (menu.id === selectedMenuId) {
-        return {
-          ...menu,
-          categories: menu.categories.map(category => {
-            if (category.id === addingSubcategory.categoryId) {
-              return {
-                ...category,
-                sub_categories: [...category.sub_categories, newSubcategory]
-              };
-            }
-            return category;
-          })
-        };
-      }
-      return menu;
-    });
-
-    // Update local state immediately
-    setMenus(updatedMenus);
-
-    try {
-      await insertSubCategory.mutateAsync({
-        category_id: addingSubcategory.categoryId,
-        name: name,
-      });
-      
-      setAddingSubcategory(null);
-    } catch (error) {
-      // Revert optimistic update on error
-      setMenus(menus);
-      console.error('Failed to add subcategory:', error);
-    }
-  };
 
   const handleAvailabilityChange = async (itemId: string, newAvailability: boolean) => {
     // Set loading state for this specific item
@@ -340,21 +194,12 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
         {subcategory.menu_items.map((item, index) => 
           renderMenuItem(item, categoryId, subcategory.id, index)
         )}
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full mt-2"
-          onClick={() => handleAddItem('subcategory', categoryId, categoryName, subcategory.id, subcategory.name)}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add Item to {truncateText(subcategory.name)}
-        </Button>
       </AccordionContent>
     </AccordionItem>
   );
 
-  const renderCategory = (category: Category) => (
-    <AccordionItem key={category.id} value={category.id}>
+  const renderCategory = (category: Category, index?: number) => (
+    <AccordionItem key={category.id || `temp-category-${index}`} value={category.id || `temp-category-${index}`}>
       <AccordionTrigger className="text-xl font-headline hover:no-underline">
         <div className="flex items-center gap-2">
           <Package className="h-5 w-5" />
@@ -383,25 +228,6 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
             </Accordion>
           </div>
         )}
-
-        <div className="flex gap-2 pt-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => handleAddItem('category', category.id, category.name)}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Item in {truncateText(category.name)}
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => handleAddSubcategory(category.id, category.name)}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Subcategory
-          </Button>
-        </div>
       </AccordionContent>
     </AccordionItem>
   );
@@ -484,208 +310,13 @@ export function MenuAvailabilityView({ onBack }: MenuAvailabilityViewProps) {
         </CardHeader>
         <CardContent>
           <Accordion type="multiple" className="w-full">
-            {selectedMenu.categories.map(renderCategory)}
+            {selectedMenu.categories.map((category, index) => renderCategory(category, index))}
           </Accordion>
         </CardContent>
       </Card>
-
-      {/* Add Item Dialog */}
-      <AddItemDialog 
-        open={!!addingItem} 
-        onOpenChange={(open) => !open && setAddingItem(null)}
-        addingItem={addingItem}
-        onSave={handleSaveNewItem}
-        isLoading={insertMenuItem.isPending}
-      />
-
-      {/* Add Subcategory Dialog */}
-      <AddSubcategoryDialog 
-        open={!!addingSubcategory} 
-        onOpenChange={(open) => !open && setAddingSubcategory(null)}
-        addingSubcategory={addingSubcategory}
-        onSave={handleSaveNewSubcategory}
-        isLoading={insertSubCategory.isPending}
-      />
     </div>
   );
 }
 
-// Add Item Dialog Component
-interface AddItemDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  addingItem: {
-    type: 'category' | 'subcategory';
-    categoryId: string;
-    categoryName: string;
-    subcategoryId?: string;
-    subcategoryName?: string;
-  } | null;
-  onSave: (formData: { name: string; description: string; price: number; image_url?: string }) => void;
-  isLoading: boolean;
-}
 
-function AddItemDialog({ open, onOpenChange, addingItem, onSave, isLoading }: AddItemDialogProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    image_url: '',
-  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const price = parseFloat(formData.price);
-    if (formData.name && formData.description && price > 0) {
-      onSave({ ...formData, price });
-      setFormData({ name: '', description: '', price: '', image_url: '' });
-    }
-  };
-
-  const getDialogTitle = () => {
-    if (!addingItem) return 'Add Item';
-    if (addingItem.type === 'subcategory') {
-      return `Add Item to ${addingItem.subcategoryName}`;
-    }
-    return `Add Item to ${addingItem.categoryName}`;
-  };
-
-  const getDialogDescription = () => {
-    if (!addingItem) return '';
-    if (addingItem.type === 'subcategory') {
-      return `Add a new item to ${addingItem.categoryName} > ${addingItem.subcategoryName}`;
-    }
-    return `Add a new item to ${addingItem.categoryName}`;
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{getDialogTitle()}</DialogTitle>
-          <DialogDescription>{getDialogDescription()}</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium">Item Name</label>
-            <Input
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Enter item name"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Description</label>
-            <Textarea
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Enter item description"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Price</label>
-            <Input
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.price}
-              onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-              placeholder="0.00"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Image URL (Optional)</label>
-            <Input
-              value={formData.image_url}
-              onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
-          <div className="flex gap-2 justify-end">
-            <Button 
-              type="button"
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit"
-              disabled={isLoading || !formData.name || !formData.description || formData.price <= 0}
-            >
-              {isLoading ? 'Adding...' : 'Add Item'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Add Subcategory Dialog Component
-interface AddSubcategoryDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  addingSubcategory: {
-    categoryId: string;
-    categoryName: string;
-  } | null;
-  onSave: (name: string) => void;
-  isLoading: boolean;
-}
-
-function AddSubcategoryDialog({ open, onOpenChange, addingSubcategory, onSave, isLoading }: AddSubcategoryDialogProps) {
-  const [name, setName] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (name.trim()) {
-      onSave(name.trim());
-      setName('');
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Subcategory to {addingSubcategory?.categoryName}</DialogTitle>
-          <DialogDescription>
-            Create a new subcategory within the "{addingSubcategory?.categoryName}" category.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium">Subcategory Name</label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter subcategory name"
-              required
-            />
-          </div>
-          <div className="flex gap-2 justify-end">
-            <Button 
-              type="button"
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit"
-              disabled={isLoading || !name.trim()}
-            >
-              {isLoading ? 'Adding...' : 'Add Subcategory'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-} 
