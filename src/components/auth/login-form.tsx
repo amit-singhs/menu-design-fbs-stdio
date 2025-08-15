@@ -20,6 +20,8 @@ import { useRouter } from 'next/navigation';
 import { useLogin } from '@/lib/api/auth-service';
 import { setCookie, COOKIE_KEYS } from '@/lib/cookies';
 import { useAuth } from '@/context/auth-context';
+import { extractRestaurantIdFromTokenString } from '@/lib/utils/jwt-utils';
+import { graphqlClient } from '@/lib/graphql/client';
 
 const loginFormSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -50,20 +52,119 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
     try {
       const response = await loginMutation.mutateAsync(data);
       
-      // Store JWT token in cookies
-      setCookie(COOKIE_KEYS.AUTH_TOKEN, response.token);
+      console.log('🔐 Login successful, JWT received');
       
-      // Update auth context with token only
-      login(response.token);
+      // Extract restaurantId from JWT token
+      const restaurantId = extractRestaurantIdFromTokenString(response.token);
       
-      toast({
-        title: 'Login Successful!',
-        description: 'Welcome back! Redirecting you to the dashboard.',
-      });
+      console.log('🔍 Extracted restaurantId:', restaurantId);
       
-      // Redirect to dashboard
-      router.push('/dashboard');
+      if (!restaurantId) {
+        console.error('❌ No restaurantId found in JWT token');
+        toast({
+          title: 'Login Error',
+          description: 'Invalid token received. Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Trigger GraphQL query immediately
+      console.log('🚀 Triggering GraphQL query with restaurantId:', restaurantId);
+      
+      try {
+        const graphqlResponse = await graphqlClient.executeGetMenusWithItems(restaurantId);
+        
+        console.log('📊 GraphQL Query Result:', {
+          hasData: !!graphqlResponse.data,
+          hasError: !!graphqlResponse.error,
+          menuCount: graphqlResponse.data?.menus?.length || 0,
+          hasMenus: graphqlResponse.data?.menus && graphqlResponse.data.menus.length > 0,
+          fullResponse: graphqlResponse,
+          menus: graphqlResponse.data?.menus,
+          isArray: Array.isArray(graphqlResponse.data?.menus),
+        });
+        
+        // Store JWT token in cookies
+        setCookie(COOKIE_KEYS.AUTH_TOKEN, response.token);
+        
+        // Update auth context with token
+        login(response.token);
+        
+        // Determine redirect based on GraphQL response
+        const menus = graphqlResponse.data?.menus;
+        const hasMenus = menus && Array.isArray(menus) && menus.length > 0;
+        
+        // Test the logic with sample data
+        console.log('🧪 Testing logic with sample data:');
+        const testEmptyMenus = { data: { menus: [] } };
+        const testWithMenus = { data: { menus: [{ name: "Test Menu" }] } };
+        console.log('Empty menus test:', {
+          hasMenus: testEmptyMenus.data?.menus && Array.isArray(testEmptyMenus.data.menus) && testEmptyMenus.data.menus.length > 0,
+          menuCount: testEmptyMenus.data?.menus?.length || 0,
+        });
+        console.log('With menus test:', {
+          hasMenus: testWithMenus.data?.menus && Array.isArray(testWithMenus.data.menus) && testWithMenus.data.menus.length > 0,
+          menuCount: testWithMenus.data?.menus?.length || 0,
+        });
+        
+        console.log('🔍 Redirect Logic Debug:', {
+          hasMenus,
+          menuCount: graphqlResponse.data?.menus?.length || 0,
+          menus: graphqlResponse.data?.menus,
+          dataExists: !!graphqlResponse.data,
+          menusExists: !!graphqlResponse.data?.menus,
+        });
+        
+        if (hasMenus) {
+          console.log('🏪 User has menus, redirecting to dashboard');
+          toast({
+            title: 'Login Successful!',
+            description: 'Welcome back! Redirecting you to the dashboard.',
+          });
+          router.push('/dashboard');
+        } else {
+          console.log('📝 User has no menus, redirecting to welcome page');
+          toast({
+            title: 'Login Successful!',
+            description: 'Welcome! Let\'s create your first menu.',
+          });
+          router.push('/welcome');
+        }
+        
+        // Fallback redirect in case the above doesn't work
+        setTimeout(() => {
+          if (hasMenus) {
+            console.log('🔄 Fallback redirect to dashboard');
+            router.push('/dashboard');
+          } else {
+            console.log('🔄 Fallback redirect to welcome');
+            router.push('/welcome');
+          }
+        }, 1000);
+        
+        // Test router functionality
+        console.log('🧪 Testing router functionality...');
+        console.log('Router object:', router);
+        console.log('Router.push method:', typeof router.push);
+        
+      } catch (graphqlError) {
+        console.error('❌ GraphQL query failed:', graphqlError);
+        
+        // Store JWT token in cookies even if GraphQL fails
+        setCookie(COOKIE_KEYS.AUTH_TOKEN, response.token);
+        login(response.token);
+        
+        // On GraphQL error, redirect to welcome page
+        toast({
+          title: 'Login Successful!',
+          description: 'Welcome! Let\'s create your first menu.',
+        });
+        router.push('/welcome');
+      }
+      
     } catch (error) {
+      console.error('❌ Login failed:', error);
       toast({
         title: 'Login Failed',
         description: error instanceof Error ? error.message : 'An error occurred during login.',

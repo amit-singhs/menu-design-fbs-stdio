@@ -134,7 +134,7 @@ export const navItems: NavItem[] = [
     icon: Star,
   },
   {
-    title: "View Existing QR Codes",
+    title: "View Existing Menus QR Codes",
     href: "/dashboard/qr-codes",
     icon: QrCode,
   },
@@ -238,10 +238,10 @@ export const popularItemsData: PopularItem[] = [
 ];
 
 export const menuItems: MenuItem[] = [
-    { id: "ITEM001", name: "Margherita Pizza", description: "Classic pizza with fresh mozzarella, tomatoes, and basil.", price: 12.99, category: "Pizza", availability: "Available", stock: 50 },
+    { id: "ITEM001", name: "Margherita Pizza", description: "Classic pizza with fresh mozzarella, tomatoes, and basil.", price: 12.99, category: "Pizza", availability: "Unavailable", stock: 50 },
     { id: "ITEM002", name: "Cheeseburger", description: "Juicy beef patty with cheddar cheese, lettuce, tomato, and onion.", price: 9.99, category: "Burgers", availability: "Available", stock: 100 },
     { id: "ITEM003", name: "Spaghetti Carbonara", description: "Pasta with creamy egg sauce, pancetta, and pecorino cheese.", price: 15.50, category: "Pasta", availability: "Available", stock: 30 },
-    { id: "ITEM004", name: "Caesar Salad", description: "Crisp romaine lettuce with Caesar dressing, croutons, and parmesan.", price: 8.75, category: "Unavailable", stock: 0 },
+    { id: "ITEM004", name: "Caesar Salad", description: "Crisp romaine lettuce with Caesar dressing, croutons, and parmesan.", price: 8.75, category: "Pasta" , availability: "Unavailable", stock: 0 },
     { id: "ITEM005", name: "Garlic Bread", description: "Toasted bread with garlic, butter, and herbs.", price: 5.00, category: "Appetizers", availability: "Available", stock: 200 },
     { id: "ITEM006", name: "Tiramisu", description: "Coffee-flavored Italian dessert.", price: 7.25, category: "Desserts", availability: "Available", stock: 40 },
     { id: "ITEM007", name: "Hawaiian Pizza", description: "Pizza with ham and pineapple.", price: 13.99, category: "Pizza", availability: "Available", stock: 40 },

@@ -13,7 +13,19 @@ export const COOKIE_OPTIONS = {
   path: '/',
 } as const;
 
+/**
+ * Check if we're in a browser environment
+ */
+function isBrowser(): boolean {
+  return typeof window !== 'undefined' && typeof document !== 'undefined';
+}
+
 export const setCookie = (name: string, value: string, options?: Partial<typeof COOKIE_OPTIONS>) => {
+  if (!isBrowser()) {
+    console.warn('Cannot set cookie during server-side rendering');
+    return;
+  }
+
   const cookieOptions = { ...COOKIE_OPTIONS, ...options };
   
   let cookieString = `${name}=${encodeURIComponent(value)}`;
@@ -42,6 +54,10 @@ export const setCookie = (name: string, value: string, options?: Partial<typeof 
 };
 
 export const getCookie = (name: string): string | null => {
+  if (!isBrowser()) {
+    return null;
+  }
+
   const cookies = document.cookie.split(';');
   
   for (const cookie of cookies) {
@@ -55,10 +71,20 @@ export const getCookie = (name: string): string | null => {
 };
 
 export const removeCookie = (name: string) => {
+  if (!isBrowser()) {
+    console.warn('Cannot remove cookie during server-side rendering');
+    return;
+  }
+
   setCookie(name, '', { maxAge: -1 });
 };
 
 export const clearAuthCookies = () => {
+  if (!isBrowser()) {
+    console.warn('Cannot clear auth cookies during server-side rendering');
+    return;
+  }
+
   removeCookie(COOKIE_KEYS.AUTH_TOKEN);
   removeCookie(COOKIE_KEYS.USER_DATA);
 }; 
