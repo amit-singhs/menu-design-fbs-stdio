@@ -92,6 +92,7 @@ export default function RestaurantMenuPage() {
           price: item.price,
           category: category.name,
           subcategory: 'General',
+          available: item.available,
         });
       });
       
@@ -104,6 +105,7 @@ export default function RestaurantMenuPage() {
             price: item.price,
             category: category.name,
             subcategory: subCategory.name,
+            available: item.available,
           });
         });
       });

@@ -36,6 +36,7 @@ export const menuItemSchema = z.object({
   description: z.string().min(10, 'Description must be at least 10 characters.'),
   category: z.string().optional(),
   subcategory: z.string().optional(),
+  available: z.boolean().optional().default(true),
 });
 
 const menuFormSchema = z.object({
@@ -69,7 +70,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
     defaultValues: {
       menuName: '',
       menuDescription: '',
-      items: [{ dishName: '', price: 0, description: '', category: '', subcategory: '' }],
+      items: [{ dishName: '', price: 0, description: '', category: '', subcategory: '', available: true }],
     },
     mode: 'onBlur',
   });
@@ -596,7 +597,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
               variant="outline"
               size="lg"
               className="border-2 border-dashed rounded-lg py-6 px-8 text-lg"
-              onClick={() => append({ dishName: '', price: 0, description: '', category: '', subcategory: '' })}
+              onClick={() => append({ dishName: '', price: 0, description: '', category: '', subcategory: '', available: true })}
             >
               <PlusCircle className="mr-2 h-5 w-5" />
               Add Another Item

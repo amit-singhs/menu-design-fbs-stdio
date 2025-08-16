@@ -318,47 +318,94 @@ export function Menu({ items, menuName, onOrderPlaced, onBack }: MenuProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-8">
                   {items.map((item, index) => {
                     const cartItem = getCartItem(item.dishName);
+                    const isUnavailable = item.available === false;
+                    
                     return (
                       <Card
                         key={index}
-                        className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 border-none bg-card animate-in fade-in slide-in-from-bottom-4 flex flex-col"
+                        className={`overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 border-none animate-in fade-in slide-in-from-bottom-4 flex flex-col ${
+                          isUnavailable 
+                            ? 'bg-gray-100 dark:bg-gray-800 opacity-75' 
+                            : 'bg-card'
+                        }`}
                         style={{ animationDelay: `${index * 50}ms` }}
                       >
                         <CardContent className="p-6 space-y-4 flex flex-col flex-grow">
                           <div className="flex justify-between items-start gap-4">
-                            <h3 className="text-2xl font-bold font-headline text-foreground leading-tight">
-                              {item.dishName}
-                            </h3>
-                            <div className="text-lg font-bold text-primary whitespace-nowrap pt-px font-mono">
+                            <div className="flex-1">
+                              <h3 className={`text-2xl font-bold font-headline leading-tight ${
+                                isUnavailable 
+                                  ? 'text-gray-500 dark:text-gray-400' 
+                                  : 'text-foreground'
+                              }`}>
+                                {item.dishName}
+                              </h3>
+                              {isUnavailable && (
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  Unavailable
+                                </p>
+                              )}
+                            </div>
+                            <div className={`text-lg font-bold whitespace-nowrap pt-px font-mono ${
+                              isUnavailable 
+                                ? 'text-gray-500 dark:text-gray-400' 
+                                : 'text-primary'
+                            }`}>
                               ${item.price.toFixed(2)}
                             </div>
                           </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed flex-grow">
+                          <p className={`text-sm leading-relaxed flex-grow ${
+                            isUnavailable 
+                              ? 'text-gray-500 dark:text-gray-400' 
+                              : 'text-muted-foreground'
+                          }`}>
                             {item.description}
                           </p>
                           <div className="flex items-center justify-center pt-2">
                             {!cartItem ? (
-                              <Button className="w-full h-12 text-base" onClick={() => handleAddToCart(item)}>
-                                <Plus className="mr-2 h-5 w-5" /> Add to Order
+                              <Button 
+                                className={`w-full h-12 text-base ${
+                                  isUnavailable 
+                                    ? 'bg-gray-400 text-gray-600 hover:bg-gray-400 cursor-not-allowed' 
+                                    : ''
+                                }`}
+                                onClick={() => !isUnavailable && handleAddToCart(item)}
+                                disabled={isUnavailable}
+                              >
+                                <Plus className="mr-2 h-5 w-5" /> 
+                                {isUnavailable ? 'Unavailable' : 'Add to Order'}
                               </Button>
                             ) : (
                               <div className="flex items-center justify-between w-full">
                                 <Button
                                   variant="outline"
                                   size="icon"
-                                  className="rounded-full h-12 w-12"
+                                  className={`rounded-full h-12 w-12 ${
+                                    isUnavailable 
+                                      ? 'border-gray-400 text-gray-500 hover:bg-gray-100' 
+                                      : ''
+                                  }`}
                                   onClick={() => handleRemoveFromCart(item.dishName)}
                                 >
                                   <Minus className="h-6 w-6" />
                                 </Button>
-                                <span className="text-2xl font-bold w-12 text-center">
+                                <span className={`text-2xl font-bold w-12 text-center ${
+                                  isUnavailable 
+                                    ? 'text-gray-500 dark:text-gray-400' 
+                                    : ''
+                                }`}>
                                   {cartItem.quantity}
                                 </span>
                                 <Button
                                   variant="outline"
                                   size="icon"
-                                  className="rounded-full h-12 w-12"
-                                  onClick={() => handleAddToCart(item)}
+                                  className={`rounded-full h-12 w-12 ${
+                                    isUnavailable 
+                                      ? 'border-gray-400 text-gray-500 hover:bg-gray-100' 
+                                      : ''
+                                  }`}
+                                  onClick={() => !isUnavailable && handleAddToCart(item)}
+                                  disabled={isUnavailable}
                                 >
                                   <Plus className="h-6 w-6" />
                                 </Button>
