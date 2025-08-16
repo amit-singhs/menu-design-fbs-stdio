@@ -6,7 +6,8 @@ This is a NextJS starter for a restaurant menu management system with both admin
 
 - **Admin Dashboard**: Manage menus, categories, subcategories, and menu items
 - **Public Menu System**: QR code accessible menus for customers
-- **Order Management**: Customer ordering system with cart functionality
+- **Order Management**: Customer ordering system with cart functionality and real API integration
+- **Order Status Tracking**: Order status display with manual refresh capability
 - **Real-time Updates**: Optimistic UI updates with GraphQL integration
 
 ## Getting Started
@@ -61,3 +62,37 @@ These URLs can be encoded in QR codes for easy customer access:
 - **Order System**: Customers can add items to cart and place orders
 - **Table Number**: Required for order placement
 - **Special Instructions**: Support for item-specific and order-level instructions
+- **Order Status**: Real-time tracking of order progress with automatic updates
+- **API Integration**: Full REST API integration for order creation and status tracking
+
+## Order Management API
+
+The application integrates with a REST API for order management operations.
+
+### API Endpoints
+
+- **POST** `/api/orders` - Create a new order
+- **GET** `/api/orders/{orderId}` - Get order status
+
+### Environment Variables
+
+Add the following to your `.env` file:
+
+```env
+NEXT_PUBLIC_ORDERS_MANAGEMENT_ENDPOINT=http://localhost:8080/api
+```
+
+### Order Flow
+
+1. **Order Creation**: Customer places order through menu interface
+2. **API Call**: Order data sent to backend via REST API
+3. **Status Display**: Order status fetched once and displayed
+4. **Manual Refresh**: User can refresh page to get updated status
+
+### Features
+
+- **Single API Call**: One-time status fetch when page loads
+- **Error Handling**: Comprehensive error handling with user feedback
+- **Toast Notifications**: Success and error messages for all operations
+- **Loading States**: Proper loading indicators during API calls
+- **Cost Efficient**: No unnecessary polling or repeated API calls
