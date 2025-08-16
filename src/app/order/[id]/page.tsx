@@ -3,48 +3,49 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { OrderStatus } from '@/components/order-status';
-import { useOrders } from '@/context/order-context';
-import type { Order } from '@/context/order-context';
+import { OrderDetails } from '@/components/order-details';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useOrderApi } from '@/hooks/use-order-api';
+import type { OrderStatusResponse } from '@/lib/api/types';
 
 export default function OrderStatusPage() {
   const params = useParams();
   const router = useRouter();
-  const { orders, getOrderById, updateOrderStatus } = useOrders();
-  const [order, setOrder] = useState<Order | undefined | null>(undefined);
+  const { getOrderStatus, isLoadingOrderStatus } = useOrderApi();
+  const [order, setOrder] = useState<OrderStatusResponse | undefined | null>(undefined);
+  const [hasFetched, setHasFetched] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const orderId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   useEffect(() => {
-    if (orderId) {
-      const foundOrder = getOrderById(orderId);
-      setOrder(foundOrder || null);
+    if (orderId && !hasFetched && !isLoadingOrderStatus) {
+      console.log('Fetching order status for:', orderId);
+      setHasFetched(true);
+      
+      getOrderStatus(orderId).then((orderData) => {
+        console.log('Order data received:', orderData);
+        setOrder(orderData || null);
+      });
     }
-  }, [orderId, orders, getOrderById]);
-  
-  useEffect(() => {
-    // Automatically advance the order status for demonstration purposes.
-    if (order && orderId && order.status !== 'ready') {
-      const timer = setTimeout(() => {
-        if (order.status === 'placed') {
-          updateOrderStatus(orderId, 'preparing');
-        } else if (order.status === 'preparing') {
-          updateOrderStatus(orderId, 'ready');
-        }
-      }, 4000); // 4-second delay
-
-      return () => clearTimeout(timer);
-    }
-  }, [order, orderId, updateOrderStatus]);
+  }, [orderId, hasFetched, isLoadingOrderStatus, getOrderStatus]);
   
   const handleBackToMenu = () => {
     // A bit of a hack to reset the main page state. In a real app, you might use a different navigation flow.
     window.location.href = '/';
   }
+
+  const handleViewOrderDetails = () => {
+    setShowDetails(true);
+  };
+
+  const handleBackToStatus = () => {
+    setShowDetails(false);
+  };
   
-  if (order === undefined) {
+  if (order === undefined || isLoadingOrderStatus) {
     // Loading state
     return (
         <div className="min-h-screen w-full bg-background flex items-center justify-center p-4">
@@ -97,5 +98,9 @@ export default function OrderStatusPage() {
       )
   }
 
-  return <OrderStatus order={order} onBackToMenu={handleBackToMenu} />;
+  if (showDetails && order) {
+    return <OrderDetails order={order} onBackToStatus={handleBackToStatus} />;
+  }
+
+  return <OrderStatus order={order} onBackToMenu={handleBackToMenu} onViewOrderDetails={handleViewOrderDetails} />;
 }

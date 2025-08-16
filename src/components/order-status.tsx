@@ -3,35 +3,39 @@
 import { useMemo, useState, type SVGProps } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChefHat, CheckCircle2, PartyPopper, SmilePlus, Utensils } from 'lucide-react';
+import { ChefHat, CheckCircle2, PartyPopper, SmilePlus, Utensils, Clock, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Order } from '@/context/order-context';
+import type { OrderStatusResponse } from '@/lib/api/types';
 import { FeedbackForm } from '@/components/feedback-form';
 
 const orderStatuses = [
-  { name: 'Approved', icon: CheckCircle2, description: "Your order is confirmed." },
+  { name: 'Pending', icon: Clock, description: "Your order is confirmed and waiting to be prepared." },
   { name: 'Preparing', icon: ChefHat, description: "The kitchen is crafting your meal." },
-  { name: 'Ready', icon: PartyPopper, description: "Your order is ready! Enjoy!" },
+  { name: 'Ready', icon: PartyPopper, description: "Your order is ready for pickup!" },
+  { name: 'Completed', icon: CheckCircle2, description: "Your order has been completed. Thank you!" },
 ];
 
 interface OrderStatusProps {
-  order: Order;
+  order: OrderStatusResponse;
   onBackToMenu: () => void;
+  onViewOrderDetails: () => void;
 }
 
-export function OrderStatus({ order, onBackToMenu }: OrderStatusProps) {
+export function OrderStatus({ order, onBackToMenu, onViewOrderDetails }: OrderStatusProps) {
     const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
     
     const currentStatusIndex = useMemo(() => {
         switch(order.status) {
-            case 'placed': return 0;
+            case 'pending': return 0;
             case 'preparing': return 1;
             case 'ready': return 2;
+            case 'completed': return 3;
+            case 'cancelled': return -1; // Special case for cancelled orders
             default: return 0;
         }
     }, [order.status]);
 
-    const isComplete = currentStatusIndex === orderStatuses.length - 1;
+    const isComplete = currentStatusIndex === orderStatuses.length - 1 || order.status === 'cancelled';
     
     return (
         <div className="min-h-screen w-full bg-background flex items-center justify-center p-4 animate-in fade-in duration-500">
@@ -48,7 +52,7 @@ export function OrderStatus({ order, onBackToMenu }: OrderStatusProps) {
                     </CardTitle>
                     <CardDescription className="text-lg">
                         {!isComplete
-                            ? `Table #${order.tableNumber}`
+                            ? `Table #${order.table_number}`
                             : !feedbackSubmitted
                             ? 'Your feedback helps us get better.'
                             : 'Your feedback has been received. We hope to see you again soon!'
@@ -56,7 +60,13 @@ export function OrderStatus({ order, onBackToMenu }: OrderStatusProps) {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 sm:p-8">
-                    {!isComplete ? (
+                    {order.status === 'cancelled' ? (
+                        <div className="text-center py-8 space-y-4">
+                            <XCircle className="h-16 w-16 text-red-500 mx-auto" />
+                            <h3 className="text-xl font-semibold text-red-600">Order Cancelled</h3>
+                            <p className="text-muted-foreground">This order has been cancelled.</p>
+                        </div>
+                    ) : !isComplete ? (
                         <div className="relative">
                             {/* Connecting Lines */}
                             <div className="absolute left-5 top-5 bottom-5 w-0.5 bg-border -z-10" />
@@ -91,6 +101,14 @@ export function OrderStatus({ order, onBackToMenu }: OrderStatusProps) {
                     )}
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4 p-6">
+                    <Button
+                        variant="outline"
+                        size="lg"
+                        className="w-full h-12 text-base"
+                        onClick={onViewOrderDetails}
+                    >
+                        View Order Details
+                    </Button>
                     <Button
                         size="lg"
                         className="w-full h-12 text-base"

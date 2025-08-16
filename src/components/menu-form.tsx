@@ -31,11 +31,13 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from '@/lib/utils';
 
 export const menuItemSchema = z.object({
+  id: z.string().optional(),
   dishName: z.string().min(1, 'Dish name is required.'),
   price: z.coerce.number().positive('Price must be a positive number.'),
   description: z.string().min(10, 'Description must be at least 10 characters.'),
   category: z.string().optional(),
   subcategory: z.string().optional(),
+  available: z.boolean().optional().default(true),
 });
 
 const menuFormSchema = z.object({
@@ -69,7 +71,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
     defaultValues: {
       menuName: '',
       menuDescription: '',
-      items: [{ dishName: '', price: 0, description: '', category: '', subcategory: '' }],
+      items: [{ dishName: '', price: 0, description: '', category: '', subcategory: '', available: true }],
     },
     mode: 'onBlur',
   });
@@ -596,7 +598,7 @@ export function MenuForm({ onMenuSaved }: MenuFormProps) {
               variant="outline"
               size="lg"
               className="border-2 border-dashed rounded-lg py-6 px-8 text-lg"
-              onClick={() => append({ dishName: '', price: 0, description: '', category: '', subcategory: '' })}
+              onClick={() => append({ dishName: '', price: 0, description: '', category: '', subcategory: '', available: true })}
             >
               <PlusCircle className="mr-2 h-5 w-5" />
               Add Another Item

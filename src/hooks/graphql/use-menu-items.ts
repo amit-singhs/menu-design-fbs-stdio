@@ -3,7 +3,7 @@
  * Custom hooks for menu item-related GraphQL operations
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { INSERT_MENU_ITEM, INSERT_MULTIPLE_MENU_ITEMS, UPDATE_MENU_ITEM, UPDATE_MENU_ITEM_AVAILABILITY, DELETE_MENU_ITEM } from '@/services/graphql/mutations';
 import { 
   InsertMenuItemVariables, 
@@ -22,6 +22,9 @@ import { useGraphQLErrorHandler } from '@/lib/graphql/error-handler';
 import { toast } from '@/hooks/use-toast';
 import { useAtom } from 'jotai';
 import { menusAtom } from '@/lib/store/menu-store';
+import { graphqlClient } from '@/lib/graphql/client';
+import { GET_RESTAURANT_MENU_ITEMS, QUERY_KEYS } from '@/services/graphql/queries';
+import type { GetRestaurantMenuItemsResponse, GetRestaurantMenuItemsVariables } from '@/lib/graphql/types';
 
 /**
  * Hook for inserting a single menu item
@@ -255,5 +258,37 @@ export const useDeleteMenuItem = () => {
         description: `Menu item "${data.deleteMenuItem.name}" deleted successfully!`,
       });
     },
+  });
+}; 
+
+/**
+ * Hook to fetch restaurant menu items (public access)
+ */
+export const useGetRestaurantMenuItems = (restaurantId: string) => {
+  const { handleError } = useGraphQLErrorHandler();
+
+  return useQuery({
+    queryKey: QUERY_KEYS.menuItems.byRestaurant(restaurantId),
+    queryFn: async () => {
+      const response = await graphqlClient.executePublicQuery<GetRestaurantMenuItemsResponse>(
+        GET_RESTAURANT_MENU_ITEMS,
+        { restaurant_id: restaurantId }
+      );
+      
+      if (response.error) {
+        handleError(response.error, 'GetRestaurantMenuItems');
+        throw new Error(response.error.message);
+      }
+      
+      if (response.errors && response.errors.length > 0) {
+        handleError(response.errors[0], 'GetRestaurantMenuItems');
+        throw new Error(response.errors[0].message);
+      }
+      
+      return response.data;
+    },
+    enabled: !!restaurantId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 }; 
