@@ -103,6 +103,48 @@ export interface GetMenusWithItemsResponse {
   };
 }
 
+/**
+ * GetRestaurantMenus Query Variables
+ */
+export interface GetRestaurantMenusVariables {
+  restaurant_id: string;
+}
+
+/**
+ * GetRestaurantMenus Query Response
+ */
+export interface GetRestaurantMenusResponse {
+  getRestaurantMenus: Array<{
+    id: string;
+    name: string;
+    description: string;
+  }>;
+}
+
+/**
+ * GetRestaurantMenuItems Query Variables
+ */
+export interface GetRestaurantMenuItemsVariables {
+  restaurant_id: string;
+}
+
+/**
+ * GetRestaurantMenuItems Query Response
+ */
+export interface GetRestaurantMenuItemsResponse {
+  getRestaurantMenuItems: Array<{
+    id: string;
+    name: string;
+    menu_id: string;
+    menu_items: MenuItem[];
+    sub_categories: Array<{
+      id: string;
+      name: string;
+      menu_items: MenuItem[];
+    }>;
+  }>;
+}
+
 // ============================================================================
 // MUTATION TYPES
 // ============================================================================

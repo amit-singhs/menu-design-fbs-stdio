@@ -213,6 +213,78 @@ export class GraphQLClient {
   }
 
   /**
+   * Execute public GraphQL query without authentication
+   * Used for public menu access
+   */
+  async executePublicQuery<T = any>(
+    query: string,
+    variables?: Record<string, any>,
+    options?: GraphQLOptions
+  ): Promise<GraphQLResponse<T>> {
+    try {
+      const requestBody = {
+        query,
+        variables: variables || {},
+      };
+
+      // For public queries, we don't include authentication headers
+      const headers = { ...this.headers };
+      
+      // Remove any authorization headers for public access
+      delete headers['Authorization'];
+
+      console.log('🌐 Public GraphQL Execute:', {
+        endpoint: this.endpoint,
+        query: query.substring(0, 100) + '...',
+        variables,
+        headers: headers,
+      });
+
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: {
+          ...headers,
+          ...options?.headers,
+        },
+        body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(options?.timeout || GRAPHQL_CONFIG.TIMEOUT),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      console.log('📥 Public GraphQL Response:', {
+        status: response.status,
+        ok: response.ok,
+        result,
+        hasErrors: !!(result.errors && result.errors.length > 0),
+        hasData: !!result.data,
+      });
+
+      // Check for GraphQL errors
+      if (result.errors && result.errors.length > 0) {
+        this.handleError(result.errors[0], 'Public GraphQL Response');
+        return {
+          errors: result.errors,
+          error: this.createGraphQLError(result.errors[0]),
+        };
+      }
+
+      return {
+        data: result.data,
+      };
+    } catch (error) {
+      this.handleError(error, 'Public Network Request');
+      return {
+        error: this.createNetworkError(error),
+      };
+    }
+  }
+
+  /**
    * Generic request method for GraphQL operations
    * @param query GraphQL query or mutation string
    * @param variables Variables for the query/mutation
