@@ -31,6 +31,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from '@/lib/utils';
 
 export const menuItemSchema = z.object({
+  id: z.string().optional(),
   dishName: z.string().min(1, 'Dish name is required.'),
   price: z.coerce.number().positive('Price must be a positive number.'),
   description: z.string().min(10, 'Description must be at least 10 characters.'),

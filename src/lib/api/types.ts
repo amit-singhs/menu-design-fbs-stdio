@@ -60,4 +60,48 @@ export interface JWTPayload {
   menuId?: string; // Optional menuId field
   iat?: number;
   exp?: number;
+}
+
+// Order Management API Types
+export interface OrderItem {
+  menu_item_id: string;
+  quantity: string;
+  instructions?: string;
+}
+
+export interface CreateOrderRequest {
+  restaurant_id: string;
+  table_number: string;
+  instructions?: string;
+  items: OrderItem[];
+}
+
+export interface CreateOrderResponse {
+  id: string;
+  status: string;
+  total_amount: number;
+  created_at: string;
+}
+
+export interface OrderItemDetail {
+  id: string;
+  order_id: string;
+  menu_item_id: string;
+  quantity: number;
+  price: number;
+  instructions?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrderStatusResponse {
+  id: string;
+  restaurant_id: string;
+  table_number: string;
+  total_amount: number;
+  instructions?: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  order_items: OrderItemDetail[];
 } 

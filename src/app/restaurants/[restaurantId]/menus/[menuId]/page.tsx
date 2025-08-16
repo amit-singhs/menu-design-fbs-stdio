@@ -87,6 +87,7 @@ export default function RestaurantMenuPage() {
       // Add items directly under category
       category.menu_items.forEach((item) => {
         items.push({
+          id: item.id,
           dishName: item.name,
           description: item.description || '',
           price: item.price,
@@ -100,6 +101,7 @@ export default function RestaurantMenuPage() {
       category.sub_categories.forEach((subCategory) => {
         subCategory.menu_items.forEach((item) => {
           items.push({
+            id: item.id,
             dishName: item.name,
             description: item.description || '',
             price: item.price,

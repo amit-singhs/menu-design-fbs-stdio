@@ -21,6 +21,8 @@ import { Utensils, ShoppingCart, Plus, Minus, Trash2, Loader2, Info, ArrowLeft }
 import type { menuItemSchema } from '@/components/menu-form';
 import type { CartItem as CartItemType } from '@/context/order-context';
 import { Separator } from './ui/separator';
+import { useOrderApi } from '@/hooks/use-order-api';
+import { useRouter } from 'next/navigation';
 
 export type MenuItem = z.infer<typeof menuItemSchema>;
 export type CartItem = CartItemType;
@@ -42,9 +44,10 @@ export function Menu({ items, menuName, onOrderPlaced, onBack }: MenuProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [tableNumber, setTableNumber] = useState('');
   const [orderInstructions, setOrderInstructions] = useState('');
-  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { toast } = useToast();
+  const { createOrder, isCreatingOrder } = useOrderApi();
+  const router = useRouter();
 
   const cartTotal = useMemo(() => {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -117,23 +120,38 @@ export function Menu({ items, menuName, onOrderPlaced, onBack }: MenuProps) {
       return;
     }
 
-    setIsPlacingOrder(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Transform cart items to API format
+    const orderItems = cart.map(item => ({
+      menu_item_id: item.id || '', // We need to get the actual menu item ID
+      quantity: item.quantity.toString(),
+      instructions: item.specialInstructions || undefined,
+    }));
 
-    toast({
-      title: 'Order Placed Successfully!',
-      description: `Your order for table #${tableNumber} is being prepared.`,
-    });
-    
-    onOrderPlaced({ cart, tableNumber, specialInstructions: orderInstructions });
+    // Get restaurant ID from URL or props
+    const restaurantId = window.location.pathname.split('/')[2]; // Extract from /restaurants/{restaurantId}/menus/{menuId}
 
-    // Reset state in case component is reused
-    setCart([]);
-    setTableNumber('');
-    setOrderInstructions('');
-    setIsPlacingOrder(false);
-    setIsSheetOpen(false);
+    const orderData = {
+      restaurant_id: restaurantId,
+      table_number: tableNumber,
+      instructions: orderInstructions || undefined,
+      items: orderItems,
+    };
+
+    const response = await createOrder(orderData);
+
+    if (response) {
+      // Call the original onOrderPlaced callback
+      onOrderPlaced({ cart, tableNumber, specialInstructions: orderInstructions });
+
+      // Reset state
+      setCart([]);
+      setTableNumber('');
+      setOrderInstructions('');
+      setIsSheetOpen(false);
+
+      // Redirect to order status page
+      router.push(`/order/${response.id}`);
+    }
   };
 
   const groupedItems = useMemo(() => {
@@ -286,14 +304,14 @@ export function Menu({ items, menuName, onOrderPlaced, onBack }: MenuProps) {
                         className="w-2/3"
                         size="lg"
                         onClick={handlePlaceOrder}
-                        disabled={isPlacingOrder}
+                        disabled={isCreatingOrder}
                       >
-                        {isPlacingOrder ? (
+                        {isCreatingOrder ? (
                           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                         ) : (
                           <ShoppingCart className="mr-2 h-5 w-5" />
                         )}
-                        {isPlacingOrder ? 'Placing...' : 'Place Order'}
+                        {isCreatingOrder ? 'Placing...' : 'Place Order'}
                       </Button>
                     </div>
                   </div>
