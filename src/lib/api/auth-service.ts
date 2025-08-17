@@ -10,7 +10,17 @@ import type {
   ForgotPasswordRequest,
   ForgotPasswordResponse,
   VerifyTokenRequest,
-  VerifyTokenResponse
+  VerifyTokenResponse,
+  CreateKitchenStaffRequest,
+  CreateKitchenStaffResponse,
+  GetKitchenStaffResponse,
+  DeleteKitchenStaffRequest,
+  DeleteKitchenStaffResponse,
+  StaffLoginRequest,
+  StaffLoginResponse,
+  KitchenOrder,
+  UpdateOrderStatusRequest,
+  UpdateOrderStatusResponse
 } from './types';
 
 // Query keys for caching
@@ -18,6 +28,8 @@ export const authQueryKeys = {
   all: ['auth'] as const,
   user: () => [...authQueryKeys.all, 'user'] as const,
   token: () => [...authQueryKeys.all, 'token'] as const,
+  kitchenStaff: () => [...authQueryKeys.all, 'kitchen-staff'] as const,
+  orders: () => [...authQueryKeys.all, 'orders'] as const,
 } as const;
 
 // Login mutation
@@ -74,4 +86,80 @@ export const useVerifyToken = (token: string | null) => {
 export const invalidateAuthQueries = () => {
   // This will be used in the auth context to clear cached data on logout
   return authQueryKeys.all;
+}; 
+
+// Kitchen Staff Management
+export const useCreateKitchenStaff = () => {
+  return useMutation({
+    mutationFn: async (data: CreateKitchenStaffRequest): Promise<CreateKitchenStaffResponse> => {
+      return apiClient.createKitchenStaff(data);
+    },
+    onError: (error) => {
+      console.error('Create kitchen staff failed:', error);
+    },
+  });
+};
+
+export const useGetKitchenStaff = (restaurantId: string | null) => {
+  return useQuery({
+    queryKey: [...authQueryKeys.kitchenStaff(), restaurantId],
+    queryFn: async (): Promise<GetKitchenStaffResponse> => {
+      if (!restaurantId) throw new Error('Restaurant ID is required');
+      return apiClient.getKitchenStaff(restaurantId);
+    },
+    enabled: !!restaurantId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (garbage collection time)
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    retry: 1,
+  });
+};
+
+export const useDeleteKitchenStaff = () => {
+  return useMutation({
+    mutationFn: async (data: DeleteKitchenStaffRequest): Promise<DeleteKitchenStaffResponse> => {
+      return apiClient.deleteKitchenStaff(data);
+    },
+    onError: (error) => {
+      console.error('Delete kitchen staff failed:', error);
+    },
+  });
+};
+
+export const useStaffLogin = () => {
+  return useMutation({
+    mutationFn: async (credentials: StaffLoginRequest): Promise<StaffLoginResponse> => {
+      return apiClient.staffLogin(credentials);
+    },
+    onError: (error) => {
+      console.error('Staff login failed:', error);
+    },
+  });
+};
+
+// Orders Management
+export const useGetOrders = () => {
+  return useQuery({
+    queryKey: [...authQueryKeys.orders()],
+    queryFn: async (): Promise<KitchenOrder[]> => {
+      return apiClient.getOrders();
+    },
+    staleTime: 30 * 1000, // 30 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    retry: 1,
+  });
+};
+
+export const useUpdateOrderStatus = () => {
+  return useMutation({
+    mutationFn: async ({ orderId, status }: { orderId: string; status: UpdateOrderStatusRequest['status'] }): Promise<UpdateOrderStatusResponse> => {
+      return apiClient.updateOrderStatus(orderId, { status });
+    },
+    onError: (error) => {
+      console.error('Update order status failed:', error);
+    },
+  });
 }; 

@@ -18,9 +18,11 @@ import { useState } from 'react';
 import { Loader2, ChefHat } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useStaffLogin } from '@/lib/api/auth-service';
+import { setCookie, COOKIE_KEYS } from '@/lib/cookies';
 
 const kitchenLoginFormSchema = z.object({
-  username: z.string().min(1, 'Username is required.'),
+  user_name: z.string().min(1, 'Username is required.'),
   password: z.string().min(1, 'Password is required.'),
 });
 
@@ -29,31 +31,45 @@ type KitchenLoginFormValues = z.infer<typeof kitchenLoginFormSchema>;
 export function KitchenLoginForm() {
   const { toast } = useToast();
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const staffLoginMutation = useStaffLogin();
 
   const form = useForm<KitchenLoginFormValues>({
     resolver: zodResolver(kitchenLoginFormSchema),
     defaultValues: {
-      username: '',
+      user_name: '',
       password: '',
     },
   });
 
   const onSubmit = async (data: KitchenLoginFormValues) => {
-    setIsSubmitting(true);
-    console.log('Kitchen Login Data:', data);
-    
-    // Simulate API call - for now, any credentials work.
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: 'Login Successful!',
-      description: 'Redirecting to the kitchen display.',
-    });
-    
-    router.push('/kitchen');
+    try {
+      const response = await staffLoginMutation.mutateAsync({
+        user_name: data.user_name,
+        password: data.password,
+        role: 'kitchen_staff'
+      });
 
-    // No need to set isSubmitting to false as we are redirecting.
+      // Store staff JWT token in cookies (separate from admin token)
+      setCookie(COOKIE_KEYS.STAFF_AUTH_TOKEN, response.token);
+      
+      console.log('🔐 Staff login successful, JWT received');
+      
+      toast({
+        title: 'Login Successful!',
+        description: 'Redirecting to the kitchen display.',
+      });
+      
+      // Redirect to kitchen page
+      router.push('/kitchen');
+      
+    } catch (error) {
+      console.error('❌ Staff login failed:', error);
+      toast({
+        title: 'Login Failed',
+        description: error instanceof Error ? error.message : 'Invalid credentials. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -72,7 +88,7 @@ export function KitchenLoginForm() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" suppressHydrationWarning>
                 <FormField
                     control={form.control}
-                    name="username"
+                    name="user_name"
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Username</FormLabel>
@@ -96,8 +112,8 @@ export function KitchenLoginForm() {
                     </FormItem>
                     )}
                 />
-                <Button type="submit" className="w-full h-12 text-base" disabled={isSubmitting}>
-                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button type="submit" className="w-full h-12 text-base" disabled={staffLoginMutation.isPending}>
+                    {staffLoginMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Log In
                 </Button>
                 </form>

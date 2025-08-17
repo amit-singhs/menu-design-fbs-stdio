@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import type { KitchenStaff, KitchenOrder } from '@/lib/api/types';
 
 // Generic hook for session storage
 export function useSessionStorage<T>(key: string, initialValue: T) {
@@ -123,4 +124,167 @@ export function clearAllMenuViewStates() {
     }
     keysToRemove.forEach(key => window.sessionStorage.removeItem(key));
   }
+} 
+
+// Kitchen Staff Session Storage
+export function useKitchenStaffStorage() {
+  const [staffList, setStaffList, removeStaffList] = useSessionStorage<KitchenStaff[]>('kitchen-staff-list', []);
+
+  const addStaff = useCallback((staff: KitchenStaff) => {
+    setStaffList(prev => {
+      // Check if staff already exists
+      const exists = prev.some(s => s.id === staff.id);
+      if (exists) {
+        return prev;
+      }
+      return [...prev, staff];
+    });
+  }, [setStaffList]);
+
+  const removeStaff = useCallback((staffId: string) => {
+    setStaffList(prev => prev.filter(staff => staff.id !== staffId));
+  }, [setStaffList]);
+
+  const updateStaffList = useCallback((newList: KitchenStaff[]) => {
+    setStaffList(newList);
+  }, [setStaffList]);
+
+  const clearStaffList = useCallback(() => {
+    removeStaffList();
+  }, [removeStaffList]);
+
+  return {
+    staffList,
+    addStaff,
+    removeStaff,
+    updateStaffList,
+    clearStaffList,
+  };
+} 
+
+// Kitchen Orders Session Storage
+export function useKitchenOrdersStorage() {
+  const [orders, setOrders, removeOrders] = useSessionStorage<KitchenOrder[]>('kitchen-orders', []);
+
+  const addOrder = useCallback((order: KitchenOrder) => {
+    setOrders(prev => {
+      // Check if order already exists
+      const exists = prev.some(o => o.id === order.id);
+      if (exists) {
+        return prev;
+      }
+      return [...prev, order];
+    });
+  }, [setOrders]);
+
+  const updateOrder = useCallback((orderId: string, updatedOrder: KitchenOrder) => {
+    setOrders(prev => prev.map(order => order.id === orderId ? updatedOrder : order));
+  }, [setOrders]);
+
+  const updateOrderStatus = useCallback((orderId: string, status: KitchenOrder['status']) => {
+    setOrders(prev => prev.map(order => 
+      order.id === orderId 
+        ? { ...order, status, updated_at: new Date().toISOString() }
+        : order
+    ));
+  }, [setOrders]);
+
+  const removeOrder = useCallback((orderId: string) => {
+    setOrders(prev => prev.filter(order => order.id !== orderId));
+  }, [setOrders]);
+
+  const updateOrdersList = useCallback((newList: KitchenOrder[]) => {
+    setOrders(newList);
+  }, [setOrders]);
+
+  const clearOrders = useCallback(() => {
+    removeOrders();
+  }, [removeOrders]);
+
+  return {
+    orders,
+    addOrder,
+    updateOrder,
+    updateOrderStatus,
+    removeOrder,
+    updateOrdersList,
+    clearOrders,
+  };
+} 
+
+// Order Timer Hook
+export function useOrderTimer(order: KitchenOrder) {
+  const [elapsedTime, setElapsedTime] = useState<{ minutes: number; seconds: number }>({ minutes: 0, seconds: 0 });
+  const [totalTime, setTotalTime] = useState<{ minutes: number; seconds: number }>({ minutes: 0, seconds: 0 });
+  const [isCompleted, setIsCompleted] = useState(order.status === 'served');
+
+  useEffect(() => {
+    const calculateElapsedTime = () => {
+      const now = new Date().getTime();
+      
+      // Calculate total time since creation
+      const createdTime = new Date(order.created_at).getTime();
+      const totalElapsed = now - createdTime;
+      const totalMinutes = Math.floor(totalElapsed / 60000);
+      const totalSeconds = Math.floor((totalElapsed % 60000) / 1000);
+      setTotalTime({ minutes: totalMinutes, seconds: totalSeconds });
+
+      // If order is completed, don't update elapsed time
+      if (order.status === 'served') {
+        setIsCompleted(true);
+        return;
+      }
+
+      setIsCompleted(false);
+
+      // Calculate elapsed time based on status
+      let referenceTime: number;
+      
+      if (order.status === 'pending') {
+        // For new orders, use created_at
+        referenceTime = createdTime;
+      } else {
+        // For preparing and ready, use updated_at (when it was moved to current status)
+        referenceTime = new Date(order.updated_at).getTime();
+      }
+
+      const elapsed = now - referenceTime;
+      const minutes = Math.floor(elapsed / 60000);
+      const seconds = Math.floor((elapsed % 60000) / 1000);
+      setElapsedTime({ minutes, seconds });
+    };
+
+    // Calculate immediately
+    calculateElapsedTime();
+
+    // Only set up interval if order is not completed
+    if (order.status !== 'served') {
+      const interval = setInterval(calculateElapsedTime, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [order.created_at, order.updated_at, order.status]);
+
+  const formatTime = (time: { minutes: number; seconds: number }) => {
+    return `${time.minutes.toString().padStart(2, '0')}:${time.seconds.toString().padStart(2, '0')}`;
+  };
+
+  // For completed orders, calculate the final total time (static)
+  const getFinalTotalTime = () => {
+    if (order.status === 'served') {
+      const createdTime = new Date(order.created_at).getTime();
+      const completedTime = new Date(order.updated_at).getTime();
+      const totalElapsed = completedTime - createdTime;
+      const totalMinutes = Math.floor(totalElapsed / 60000);
+      const totalSeconds = Math.floor((totalElapsed % 60000) / 1000);
+      return { minutes: totalMinutes, seconds: totalSeconds };
+    }
+    return totalTime;
+  };
+
+  return {
+    elapsedTime,
+    totalTime: getFinalTotalTime(),
+    formatTime,
+    isCompleted
+  };
 } 

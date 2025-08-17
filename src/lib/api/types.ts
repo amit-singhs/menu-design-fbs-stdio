@@ -45,6 +45,93 @@ export interface VerifyTokenResponse {
   };
 }
 
+// Kitchen Staff Management Types
+export interface CreateKitchenStaffRequest {
+  user_name: string;
+  password: string;
+  role: string;
+}
+
+export interface CreateKitchenStaffResponse {
+  message: string;
+  user: {
+    id: string;
+    user_name: string;
+    role: string;
+  };
+}
+
+export interface DeleteKitchenStaffRequest {
+  user_id: string;
+}
+
+export interface DeleteKitchenStaffResponse {
+  message: string;
+  deletedUser: {
+    id: string;
+    user_name: string;
+    role: string;
+  };
+}
+
+// Staff Login Types
+export interface StaffLoginRequest {
+  user_name: string;
+  password: string;
+  role: string;
+}
+
+export interface StaffLoginResponse {
+  token: string;
+}
+
+// Orders Management Types
+export interface KitchenOrderItem {
+  id: string;
+  quantity: number;
+  created_at: string;
+  updated_at: string;
+  instructions?: string;
+  menu_item_id: string;
+}
+
+export interface KitchenOrder {
+  id: string;
+  restaurant_id: string;
+  table_number: string;
+  status: 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled';
+  instructions?: string;
+  created_at: string;
+  updated_at: string;
+  order_items: KitchenOrderItem[];
+}
+
+export interface GetOrdersResponse {
+  orders: KitchenOrder[];
+}
+
+export interface UpdateOrderStatusRequest {
+  status: 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled';
+}
+
+export interface UpdateOrderStatusResponse {
+  message: string;
+  order: KitchenOrder;
+}
+
+export interface KitchenStaff {
+  id: string;
+  user_name: string;
+  role: string;
+}
+
+export interface GetKitchenStaffResponse {
+  message: string;
+  restaurantId: string;
+  staffCount: number;
+  staff: KitchenStaff[];
+}
+
 export interface ApiError {
   message: string;
   status: number;
