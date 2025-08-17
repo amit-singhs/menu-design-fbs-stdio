@@ -48,81 +48,110 @@ function OrderCard({ order, onUpdateStatus }: { order: KitchenOrder; onUpdateSta
     }
   };
 
+  const getStickyNoteColor = () => {
+    switch (order.status) {
+      case 'pending':
+        return 'bg-yellow-50 border-yellow-200 shadow-yellow-100';
+      case 'preparing':
+        return 'bg-blue-50 border-blue-200 shadow-blue-100';
+      case 'ready':
+        return 'bg-green-50 border-green-200 shadow-green-100';
+      case 'served':
+        return 'bg-gray-50 border-gray-200 shadow-gray-100';
+      default:
+        return 'bg-yellow-50 border-yellow-200 shadow-yellow-100';
+    }
+  };
+
   const timeDisplay = getTimeDisplay();
+  const stickyNoteColor = getStickyNoteColor();
 
   return (
-    <Card className="flex flex-col animate-in fade-in-50">
-      <CardHeader>
+    <Card className={`flex flex-col animate-in fade-in-50 transform transition-all duration-200 hover:scale-[1.02] hover:rotate-1 ${stickyNoteColor} border-2 shadow-lg hover:shadow-xl`}>
+      {/* Sticky note top fold effect */}
+      <div className="absolute top-0 right-0 w-0 h-0 border-l-[20px] border-l-transparent border-t-[20px] border-t-gray-300 opacity-60"></div>
+      
+      <CardHeader className="pb-3">
         <CardTitle className="flex justify-between items-center">
-          <span className="font-headline text-xl">Table #{order.table_number}</span>
+          <span className="font-headline text-xl text-gray-800">Table #{order.table_number}</span>
           <div className="text-right">
-            <div className={`text-sm font-mono font-bold ${timeDisplay.className}`}>
+            <div className={`text-sm font-mono font-bold ${timeDisplay.className} bg-white/80 px-2 py-1 rounded shadow-sm`}>
               {timeDisplay.time}
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-gray-600 mt-1">
               {timeDisplay.label}
             </div>
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-grow">
+      
+      <CardContent className="flex-grow pb-3">
         <ul className="space-y-3">
           {order.order_items.map(item => (
-            <li key={item.id}>
+            <li key={item.id} className="bg-white/60 rounded-lg p-2 shadow-sm">
               <div className="flex justify-between items-start text-sm">
-                <span className="font-semibold">{item.quantity}x</span>
-                <span className="px-2 text-left flex-grow">Item #{item.menu_item_id}</span>
+                <span className="font-semibold text-gray-800 bg-yellow-200 px-2 py-1 rounded-full text-xs">
+                  {item.quantity}x
+                </span>
+                <span className="px-2 text-left flex-grow text-gray-700 font-medium">
+                  Item #{item.menu_item_id}
+                </span>
               </div>
               {item.instructions && (
-                <p className="pl-6 pt-1 text-xs text-muted-foreground italic">↳ "{item.instructions}"</p>
+                <p className="pl-6 pt-1 text-xs text-gray-600 italic bg-blue-50 rounded px-2 py-1 mt-1">
+                  ↳ "{item.instructions}"
+                </p>
               )}
             </li>
           ))}
         </ul>
         {order.instructions && (
-          <div className="mt-4 p-2 bg-amber-50 dark:bg-amber-900/40 rounded-md border border-amber-200 dark:border-amber-900">
-             <div className="flex items-center gap-2 font-semibold text-sm text-amber-800 dark:text-amber-200">
+          <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200 shadow-sm">
+             <div className="flex items-center gap-2 font-semibold text-sm text-orange-800">
                 <Info className="h-4 w-4" />
                 <span>Overall Instructions</span>
              </div>
-             <p className="pt-1 pl-6 text-sm text-amber-700 dark:text-amber-300">
+             <p className="pt-1 pl-6 text-sm text-orange-700 bg-white/60 rounded px-2 py-1 mt-1">
                 {order.instructions}
              </p>
           </div>
         )}
       </CardContent>
-      <Separator />
-      <CardFooter className="p-4 bg-muted/30">
+      
+      <Separator className="bg-gray-300" />
+      
+      <CardFooter className="p-4 bg-white/40 rounded-b-lg">
         {order.status === 'pending' && (
-          <Button className="w-full" onClick={() => onUpdateStatus(order.id, 'preparing')}>
+          <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-white shadow-md hover:shadow-lg transition-all duration-200" onClick={() => onUpdateStatus(order.id, 'preparing')}>
             <Utensils className="mr-2 h-4 w-4" /> Accept & Start Preparing
           </Button>
         )}
         {order.status === 'preparing' && (
-          <Button className="w-full bg-chart-2 text-primary-foreground hover:bg-chart-2/90" onClick={() => onUpdateStatus(order.id, 'ready')}>
+          <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg transition-all duration-200" onClick={() => onUpdateStatus(order.id, 'ready')}>
             <Check className="mr-2 h-4 w-4" /> Mark as Ready
           </Button>
         )}
         {order.status === 'ready' && (
-          <Button className="w-full bg-green-600 text-white hover:bg-green-700" onClick={() => onUpdateStatus(order.id, 'served')}>
+          <Button className="w-full bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg transition-all duration-200" onClick={() => onUpdateStatus(order.id, 'served')}>
             <Check className="mr-2 h-4 w-4" /> Complete
           </Button>
         )}
         {order.status === 'ready' && showRevert && (
-            <Button variant="outline" className="w-full" onClick={() => onUpdateStatus(order.id, 'preparing')}>
+            <Button variant="outline" className="w-full border-gray-300 bg-white/80 hover:bg-gray-50 shadow-md hover:shadow-lg transition-all duration-200" onClick={() => onUpdateStatus(order.id, 'preparing')}>
                 <Undo2 className="mr-2 h-4 w-4" /> Move Back to Preparing
             </Button>
         )}
         {order.status === 'served' && (
-            <div className="flex items-center justify-center w-full text-green-600 font-semibold text-sm gap-2">
+            <div className="flex items-center justify-center w-full text-green-600 font-semibold text-sm gap-2 bg-green-50 rounded-lg p-2 border border-green-200">
                 <Check className="h-4 w-4" />
                 <span>Completed</span>
             </div>
         )}
       </CardFooter>
+      
       {isCompleted && (
         <div className="px-4 pb-3 text-center">
-          <div className="text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1 inline-block">
+          <div className="text-xs text-gray-600 bg-white/80 rounded-lg px-3 py-2 inline-block shadow-sm border border-gray-200">
             Total time: {formatTime(totalTime)}
           </div>
         </div>
