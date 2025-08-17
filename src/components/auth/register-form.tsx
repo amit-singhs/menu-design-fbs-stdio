@@ -29,7 +29,7 @@ type Step = 'details' | 'otp';
 
 const registerFormSchema = z.object({
   restaurantName: z.string().min(2, 'Restaurant name must be at least 2 characters.'),
-  email: z.string().email('Please enter a valid email address.'),
+  user_name: z.string().min(3, 'Username must be at least 3 characters.'),
   mobile: z.string().min(10, 'Please enter a valid mobile number.'),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
   confirmPassword: z.string(),
@@ -62,7 +62,7 @@ export function RegisterForm() {
     resolver: zodResolver(registerFormSchema),
     defaultValues: {
       restaurantName: '',
-      email: '',
+      user_name: '',
       mobile: '',
       password: '',
       confirmPassword: '',
@@ -84,7 +84,7 @@ export function RegisterForm() {
       // Call the register API without confirmPassword
       const result = await registerMutation.mutateAsync({
         name: data.restaurantName,
-        email: data.email,
+        user_name: data.user_name,
         mobile: data.mobile,
         password: data.password,
       });
@@ -231,17 +231,18 @@ export function RegisterForm() {
             />
             <FormField
             control={detailsForm.control}
-            name="email"
+            name="user_name"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Username</FormLabel>
                 <FormControl>
-                    <Input placeholder="your.email@restaurant.com" {...field} />
+                    <Input placeholder="Enter your username" {...field} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
             )}
             />
+
             <FormField
             control={detailsForm.control}
             name="mobile"

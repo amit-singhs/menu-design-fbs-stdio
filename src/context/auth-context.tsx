@@ -7,7 +7,7 @@ import type { JWTPayload } from '@/lib/api/types';
 
 interface User {
   id: string;
-  email: string;
+  user_name: string;
   restaurantId: string;
   role: string;
 }
@@ -49,10 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (token) {
         const payload = decodeToken(token);
-        if (payload && payload.userId && payload.email) {
+        if (payload && payload.userId && payload.user_name) {
           const user: User = {
             id: payload.userId,
-            email: payload.email,
+            user_name: payload.user_name,
             restaurantId: payload.restaurantId,
             role: payload.role,
           };
@@ -73,10 +73,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (token: string) => {
     const payload = decodeToken(token);
-    if (payload && payload.userId && payload.email) {
+    if (payload && payload.userId && payload.user_name) {
       const user: User = {
         id: payload.userId,
-        email: payload.email,
+        user_name: payload.user_name,
         restaurantId: payload.restaurantId,
         role: payload.role,
       };
