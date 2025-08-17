@@ -2,6 +2,7 @@
 
 export const COOKIE_KEYS = {
   AUTH_TOKEN: 'auth_token',
+  STAFF_AUTH_TOKEN: 'staff_auth_token',
   USER_DATA: 'user_data',
 } as const;
 

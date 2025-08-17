@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import type { KitchenStaff, KitchenOrder } from '@/lib/api/types';
 
 // Generic hook for session storage
 export function useSessionStorage<T>(key: string, initialValue: T) {
@@ -123,4 +124,90 @@ export function clearAllMenuViewStates() {
     }
     keysToRemove.forEach(key => window.sessionStorage.removeItem(key));
   }
+} 
+
+// Kitchen Staff Session Storage
+export function useKitchenStaffStorage() {
+  const [staffList, setStaffList, removeStaffList] = useSessionStorage<KitchenStaff[]>('kitchen-staff-list', []);
+
+  const addStaff = useCallback((staff: KitchenStaff) => {
+    setStaffList(prev => {
+      // Check if staff already exists
+      const exists = prev.some(s => s.id === staff.id);
+      if (exists) {
+        return prev;
+      }
+      return [...prev, staff];
+    });
+  }, [setStaffList]);
+
+  const removeStaff = useCallback((staffId: string) => {
+    setStaffList(prev => prev.filter(staff => staff.id !== staffId));
+  }, [setStaffList]);
+
+  const updateStaffList = useCallback((newList: KitchenStaff[]) => {
+    setStaffList(newList);
+  }, [setStaffList]);
+
+  const clearStaffList = useCallback(() => {
+    removeStaffList();
+  }, [removeStaffList]);
+
+  return {
+    staffList,
+    addStaff,
+    removeStaff,
+    updateStaffList,
+    clearStaffList,
+  };
+} 
+
+// Kitchen Orders Session Storage
+export function useKitchenOrdersStorage() {
+  const [orders, setOrders, removeOrders] = useSessionStorage<KitchenOrder[]>('kitchen-orders', []);
+
+  const addOrder = useCallback((order: KitchenOrder) => {
+    setOrders(prev => {
+      // Check if order already exists
+      const exists = prev.some(o => o.id === order.id);
+      if (exists) {
+        return prev;
+      }
+      return [...prev, order];
+    });
+  }, [setOrders]);
+
+  const updateOrder = useCallback((orderId: string, updatedOrder: KitchenOrder) => {
+    setOrders(prev => prev.map(order => order.id === orderId ? updatedOrder : order));
+  }, [setOrders]);
+
+  const updateOrderStatus = useCallback((orderId: string, status: KitchenOrder['status']) => {
+    setOrders(prev => prev.map(order => 
+      order.id === orderId 
+        ? { ...order, status, updated_at: new Date().toISOString() }
+        : order
+    ));
+  }, [setOrders]);
+
+  const removeOrder = useCallback((orderId: string) => {
+    setOrders(prev => prev.filter(order => order.id !== orderId));
+  }, [setOrders]);
+
+  const updateOrdersList = useCallback((newList: KitchenOrder[]) => {
+    setOrders(newList);
+  }, [setOrders]);
+
+  const clearOrders = useCallback(() => {
+    removeOrders();
+  }, [removeOrders]);
+
+  return {
+    orders,
+    addOrder,
+    updateOrder,
+    updateOrderStatus,
+    removeOrder,
+    updateOrdersList,
+    clearOrders,
+  };
 } 
