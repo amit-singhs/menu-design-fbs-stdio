@@ -1,7 +1,7 @@
 // Authentication API Types
 
 export interface LoginRequest {
-  email: string;
+  user_name: string;
   password: string;
 }
 
@@ -11,7 +11,7 @@ export interface LoginResponse {
 
 export interface RegisterRequest {
   name: string;
-  email: string;
+  user_name: string;
   mobile: string;
   password: string;
 }
@@ -25,7 +25,7 @@ export interface RegisterResponse {
 }
 
 export interface ForgotPasswordRequest {
-  email: string;
+  user_name: string;
 }
 
 export interface ForgotPasswordResponse {
@@ -41,7 +41,7 @@ export interface VerifyTokenResponse {
   valid: boolean;
   user?: {
     id: string;
-    email: string;
+    user_name: string;
   };
 }
 
@@ -55,7 +55,7 @@ export interface ApiError {
 export interface JWTPayload {
   restaurantId: string;
   userId: string;
-  email: string;
+  user_name: string;
   role: string;
   menuId?: string; // Optional menuId field
   iat?: number;

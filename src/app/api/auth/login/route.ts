@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    const { user_name, password } = body;
 
     // Get environment variables (server-side)
     const authServiceEndpoint = process.env.AUTH_SERVICE_ENDPOINT;
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
         'x-api-key': authServiceApiKey,
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ user_name, password }),
     });
 
     if (!response.ok) {

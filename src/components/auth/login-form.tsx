@@ -24,7 +24,7 @@ import { extractRestaurantIdFromTokenString } from '@/lib/utils/jwt-utils';
 import { graphqlClient } from '@/lib/graphql/client';
 
 const loginFormSchema = z.object({
-  email: z.string().email('Please enter a valid email address.'),
+  user_name: z.string().min(1, 'Username is required.'),
   password: z.string().min(1, 'Password is required.'),
 });
 
@@ -43,7 +43,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
-      email: '',
+      user_name: '',
       password: '',
     },
   });
@@ -188,12 +188,12 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" suppressHydrationWarning>
           <FormField
             control={form.control}
-            name="email"
+            name="user_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="your.email@restaurant.com" {...field} />
+                  <Input placeholder="Enter your username" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

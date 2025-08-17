@@ -79,10 +79,10 @@ class ApiClient {
   }
 
   // Authentication methods
-  async login(email: string, password: string): Promise<LoginResponse> {
+  async login(user_name: string, password: string): Promise<LoginResponse> {
     return this.request<LoginResponse>('/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ user_name, password }),
       headers: {
         'x-api-key':API_CONFIG.AUTH_SERVICE_API_KEY
       },
@@ -91,7 +91,7 @@ class ApiClient {
 
   async register(data: {
     name: string;
-    email: string;
+    user_name: string;
     mobile: string;
     password: string;
   }): Promise<RegisterResponse> {
@@ -104,10 +104,10 @@ class ApiClient {
     });
   }
 
-  async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
+  async forgotPassword(user_name: string): Promise<ForgotPasswordResponse> {
     return this.request<ForgotPasswordResponse>('/forgot-password', {
       method: 'POST',
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ user_name }),
     });
   }
 

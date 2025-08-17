@@ -24,7 +24,7 @@ export const authQueryKeys = {
 export const useLogin = () => {
   return useMutation({
     mutationFn: async (credentials: LoginRequest): Promise<LoginResponse> => {
-      return apiClient.login(credentials.email, credentials.password);
+      return apiClient.login(credentials.user_name, credentials.password);
     },
     onError: (error) => {
       console.error('Login failed:', error);
@@ -48,7 +48,7 @@ export const useRegister = () => {
 export const useForgotPassword = () => {
   return useMutation({
     mutationFn: async (data: ForgotPasswordRequest): Promise<ForgotPasswordResponse> => {
-      return apiClient.forgotPassword(data.email);
+      return apiClient.forgotPassword(data.user_name);
     },
     onError: (error) => {
       console.error('Forgot password failed:', error);

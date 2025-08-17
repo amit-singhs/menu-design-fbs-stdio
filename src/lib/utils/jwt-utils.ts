@@ -10,7 +10,7 @@ import { getCookie } from '../cookies';
  */
 export interface JWTPayload {
   id: string;
-  email: string;
+  user_name: string;
   restaurantId: string;
   menuId?: string; // Optional menuId field
   iat?: number;
@@ -54,7 +54,7 @@ export function extractRestaurantIdFromToken(): string | null {
     console.log('🔍 JWT Payload:', {
       hasPayload: !!payload,
       restaurantId: payload?.restaurantId || 'Not found',
-      email: payload?.email || 'Not found',
+      user_name: payload?.user_name || 'Not found',
     });
     
     if (!payload || !payload.restaurantId) {

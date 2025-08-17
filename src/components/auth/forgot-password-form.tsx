@@ -19,7 +19,7 @@ import { Loader2, Mail, UtensilsCrossed } from 'lucide-react';
 import { useForgotPassword } from '@/lib/api/auth-service';
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Please enter a valid email address.'),
+  user_name: z.string().min(1, 'Username is required.'),
 });
 
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
@@ -36,7 +36,7 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
-      email: '',
+      user_name: '',
     },
   });
 
@@ -46,7 +46,7 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
       
       toast({
         title: 'Reset Link Sent',
-        description: `If an account exists for ${data.email}, you will receive a password reset link shortly.`,
+        description: `If an account exists for ${data.user_name}, you will receive a password reset link shortly.`,
       });
       
       setIsSubmitted(true);
@@ -55,10 +55,10 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
       
       toast({
         title: 'Reset Link Sent',
-        description: `If an account exists for ${data.email}, you will receive a password reset link shortly.`,
+        description: `If an account exists for ${data.user_name}, you will receive a password reset link shortly.`,
       });
       
-      // Still show success message for security reasons (don't reveal if email exists)
+      // Still show success message for security reasons (don't reveal if username exists)
       setIsSubmitted(true);
     }
   };
@@ -72,7 +72,7 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
                 </div>
                 <h1 className="text-3xl font-bold font-headline">Check Your Email</h1>
                 <p className="text-muted-foreground mt-4">
-                    We've sent a password reset link to the email address you provided. Please check your inbox and spam folders.
+                    We've sent a password reset link to the email address associated with your username. Please check your inbox and spam folders.
                 </p>
             </div>
             <Button onClick={onBackToLogin} className="w-full">
@@ -90,19 +90,19 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
             </div>
             <h1 className="text-3xl font-bold font-headline">Forgot Password?</h1>
             <p className="text-muted-foreground">
-                No worries! Enter your email and we'll send you a reset link.
+                No worries! Enter your username and we'll send you a reset link.
             </p>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" suppressHydrationWarning>
           <FormField
             control={form.control}
-            name="email"
+            name="user_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="your.email@restaurant.com" {...field} />
+                  <Input placeholder="Enter your username" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
