@@ -211,3 +211,80 @@ export function useKitchenOrdersStorage() {
     clearOrders,
   };
 } 
+
+// Order Timer Hook
+export function useOrderTimer(order: KitchenOrder) {
+  const [elapsedTime, setElapsedTime] = useState<{ minutes: number; seconds: number }>({ minutes: 0, seconds: 0 });
+  const [totalTime, setTotalTime] = useState<{ minutes: number; seconds: number }>({ minutes: 0, seconds: 0 });
+  const [isCompleted, setIsCompleted] = useState(order.status === 'served');
+
+  useEffect(() => {
+    const calculateElapsedTime = () => {
+      const now = new Date().getTime();
+      
+      // Calculate total time since creation
+      const createdTime = new Date(order.created_at).getTime();
+      const totalElapsed = now - createdTime;
+      const totalMinutes = Math.floor(totalElapsed / 60000);
+      const totalSeconds = Math.floor((totalElapsed % 60000) / 1000);
+      setTotalTime({ minutes: totalMinutes, seconds: totalSeconds });
+
+      // If order is completed, don't update elapsed time
+      if (order.status === 'served') {
+        setIsCompleted(true);
+        return;
+      }
+
+      setIsCompleted(false);
+
+      // Calculate elapsed time based on status
+      let referenceTime: number;
+      
+      if (order.status === 'pending') {
+        // For new orders, use created_at
+        referenceTime = createdTime;
+      } else {
+        // For preparing and ready, use updated_at (when it was moved to current status)
+        referenceTime = new Date(order.updated_at).getTime();
+      }
+
+      const elapsed = now - referenceTime;
+      const minutes = Math.floor(elapsed / 60000);
+      const seconds = Math.floor((elapsed % 60000) / 1000);
+      setElapsedTime({ minutes, seconds });
+    };
+
+    // Calculate immediately
+    calculateElapsedTime();
+
+    // Only set up interval if order is not completed
+    if (order.status !== 'served') {
+      const interval = setInterval(calculateElapsedTime, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [order.created_at, order.updated_at, order.status]);
+
+  const formatTime = (time: { minutes: number; seconds: number }) => {
+    return `${time.minutes.toString().padStart(2, '0')}:${time.seconds.toString().padStart(2, '0')}`;
+  };
+
+  // For completed orders, calculate the final total time (static)
+  const getFinalTotalTime = () => {
+    if (order.status === 'served') {
+      const createdTime = new Date(order.created_at).getTime();
+      const completedTime = new Date(order.updated_at).getTime();
+      const totalElapsed = completedTime - createdTime;
+      const totalMinutes = Math.floor(totalElapsed / 60000);
+      const totalSeconds = Math.floor((totalElapsed % 60000) / 1000);
+      return { minutes: totalMinutes, seconds: totalSeconds };
+    }
+    return totalTime;
+  };
+
+  return {
+    elapsedTime,
+    totalTime: getFinalTotalTime(),
+    formatTime,
+    isCompleted
+  };
+} 

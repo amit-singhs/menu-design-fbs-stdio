@@ -8,12 +8,13 @@ import { Utensils, Check, Clock, Info, Undo2, ChefHat } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useGetOrders, useUpdateOrderStatus } from '@/lib/api/auth-service';
-import { useKitchenOrdersStorage } from '@/hooks/use-session-storage';
+import { useKitchenOrdersStorage, useOrderTimer } from '@/hooks/use-session-storage';
 import { useToast } from '@/hooks/use-toast';
 import type { KitchenOrder } from '@/lib/api/types';
 
 function OrderCard({ order, onUpdateStatus }: { order: KitchenOrder; onUpdateStatus: (id: string, status: KitchenOrder['status']) => void }) {
   const [showRevert, setShowRevert] = useState(false);
+  const { elapsedTime, totalTime, formatTime, isCompleted } = useOrderTimer(order);
 
   useEffect(() => {
     if (order.status === 'ready') {
@@ -31,14 +32,37 @@ function OrderCard({ order, onUpdateStatus }: { order: KitchenOrder; onUpdateSta
     }
   }, [order.status, order.updated_at]);
 
+  const getTimeDisplay = () => {
+    if (isCompleted) {
+      return {
+        time: formatTime(totalTime),
+        label: 'Total Time',
+        className: 'text-gray-600'
+      };
+    } else {
+      return {
+        time: formatTime(elapsedTime),
+        label: order.status === 'pending' ? 'Waiting' : 'In Progress',
+        className: order.status === 'pending' ? 'text-amber-600' : 'text-blue-600'
+      };
+    }
+  };
+
+  const timeDisplay = getTimeDisplay();
+
   return (
     <Card className="flex flex-col animate-in fade-in-50">
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
           <span className="font-headline text-xl">Table #{order.table_number}</span>
-          <span className="text-sm font-normal text-muted-foreground">
-            {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
-          </span>
+          <div className="text-right">
+            <div className={`text-sm font-mono font-bold ${timeDisplay.className}`}>
+              {timeDisplay.time}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {timeDisplay.label}
+            </div>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-grow">
@@ -96,6 +120,13 @@ function OrderCard({ order, onUpdateStatus }: { order: KitchenOrder; onUpdateSta
             </div>
         )}
       </CardFooter>
+      {isCompleted && (
+        <div className="px-4 pb-3 text-center">
+          <div className="text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1 inline-block">
+            Total time: {formatTime(totalTime)}
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
