@@ -14,7 +14,7 @@ export const API_ENDPOINTS = {
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
   VERIFY_TOKEN: '/verify-token',
-  ORDERS: '/orders',
+  ORDERS: '/api/orders',
   CREATE_KITCHEN_STAFF: '/create-login',
   GET_KITCHEN_STAFF: '/staff-logins/',
   DELETE_KITCHEN_STAFF: '/delete-login',
