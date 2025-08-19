@@ -94,7 +94,7 @@ function OrderCard({ order, onUpdateStatus }: { order: KitchenOrder; onUpdateSta
                   {item.quantity}x
                 </span>
                 <span className="px-2 text-left flex-grow text-gray-700 font-medium">
-                  Item #{item.menu_item_id}
+                {item.menu_items?.name || `Item #${item.menu_item_id}`}
                 </span>
               </div>
               {item.instructions && (

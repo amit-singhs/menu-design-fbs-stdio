@@ -93,6 +93,10 @@ export interface KitchenOrderItem {
   updated_at: string;
   instructions?: string;
   menu_item_id: string;
+  menu_items : {
+    id: string;
+    name: string;
+  }
 }
 
 export interface KitchenOrder {
