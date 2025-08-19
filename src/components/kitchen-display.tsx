@@ -37,13 +37,13 @@ function OrderCard({ order, onUpdateStatus }: { order: KitchenOrder; onUpdateSta
       return {
         time: formatTime(totalTime),
         label: 'Total Time',
-        className: 'text-gray-600'
+        className: 'text-stone-600'
       };
     } else {
       return {
         time: formatTime(elapsedTime),
         label: order.status === 'pending' ? 'Waiting' : 'In Progress',
-        className: order.status === 'pending' ? 'text-amber-600' : 'text-blue-600'
+        className: order.status === 'pending' ? 'text-amber-700' : 'text-slate-700'
       };
     }
   };
@@ -51,15 +51,15 @@ function OrderCard({ order, onUpdateStatus }: { order: KitchenOrder; onUpdateSta
   const getStickyNoteColor = () => {
     switch (order.status) {
       case 'pending':
-        return 'bg-yellow-50 border-yellow-200 shadow-yellow-100';
+        return 'bg-amber-25 border-amber-300/40 shadow-amber-200/20 hover:shadow-amber-200/30';
       case 'preparing':
-        return 'bg-blue-50 border-blue-200 shadow-blue-100';
+        return 'bg-slate-25 border-slate-300/40 shadow-slate-200/20 hover:shadow-slate-200/30';
       case 'ready':
-        return 'bg-green-50 border-green-200 shadow-green-100';
+        return 'bg-emerald-25 border-emerald-300/40 shadow-emerald-200/20 hover:shadow-emerald-200/30';
       case 'served':
-        return 'bg-gray-50 border-gray-200 shadow-gray-100';
+        return 'bg-stone-25 border-stone-300/40 shadow-stone-200/20 hover:shadow-stone-200/30';
       default:
-        return 'bg-yellow-50 border-yellow-200 shadow-yellow-100';
+        return 'bg-amber-25 border-amber-300/40 shadow-amber-200/20 hover:shadow-amber-200/30';
     }
   };
 
@@ -90,15 +90,15 @@ function OrderCard({ order, onUpdateStatus }: { order: KitchenOrder; onUpdateSta
           {order.order_items.map(item => (
             <li key={item.id} className="bg-white/60 rounded-lg p-2 shadow-sm">
               <div className="flex justify-between items-start text-sm">
-                <span className="font-semibold text-gray-800 bg-yellow-200 px-2 py-1 rounded-full text-xs">
+                <span className="font-semibold text-amber-800 bg-amber-100 px-2 py-1 rounded-full text-xs border border-amber-200">
                   {item.quantity}x
                 </span>
-                <span className="px-2 text-left flex-grow text-gray-700 font-medium">
+                <span className="px-2 text-left flex-grow text-slate-700 font-medium">
                 {item.menu_items?.name || `Item #${item.menu_item_id}`}
                 </span>
               </div>
               {item.instructions && (
-                <p className="pl-6 pt-1 text-xs text-gray-600 italic bg-blue-50 rounded px-2 py-1 mt-1">
+                <p className="pl-6 pt-1 text-xs text-slate-600 italic bg-slate-50 rounded px-2 py-1 mt-1 border border-slate-100">
                   ↳ "{item.instructions}"
                 </p>
               )}
@@ -106,12 +106,12 @@ function OrderCard({ order, onUpdateStatus }: { order: KitchenOrder; onUpdateSta
           ))}
         </ul>
         {order.instructions && (
-          <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200 shadow-sm">
-             <div className="flex items-center gap-2 font-semibold text-sm text-orange-800">
+          <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200 shadow-sm">
+             <div className="flex items-center gap-2 font-semibold text-sm text-amber-800">
                 <Info className="h-4 w-4" />
                 <span>Overall Instructions</span>
              </div>
-             <p className="pt-1 pl-6 text-sm text-orange-700 bg-white/60 rounded px-2 py-1 mt-1">
+             <p className="pt-1 pl-6 text-sm text-amber-700 bg-white/60 rounded px-2 py-1 mt-1 border border-amber-100">
                 {order.instructions}
              </p>
           </div>
@@ -122,17 +122,17 @@ function OrderCard({ order, onUpdateStatus }: { order: KitchenOrder; onUpdateSta
       
       <CardFooter className="p-4 bg-white/40 rounded-b-lg">
         {order.status === 'pending' && (
-          <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-white shadow-md hover:shadow-lg transition-all duration-200" onClick={() => onUpdateStatus(order.id, 'preparing')}>
+          <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white shadow-md hover:shadow-lg transition-all duration-200 font-medium" onClick={() => onUpdateStatus(order.id, 'preparing')}>
             <Utensils className="mr-2 h-4 w-4" /> Accept & Start Preparing
           </Button>
         )}
         {order.status === 'preparing' && (
-          <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg transition-all duration-200" onClick={() => onUpdateStatus(order.id, 'ready')}>
+          <Button className="w-full bg-slate-600 hover:bg-slate-700 text-white shadow-md hover:shadow-lg transition-all duration-200 font-medium" onClick={() => onUpdateStatus(order.id, 'ready')}>
             <Check className="mr-2 h-4 w-4" /> Mark as Ready
           </Button>
         )}
         {order.status === 'ready' && (
-          <Button className="w-full bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg transition-all duration-200" onClick={() => onUpdateStatus(order.id, 'served')}>
+          <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-200 font-medium" onClick={() => onUpdateStatus(order.id, 'served')}>
             <Check className="mr-2 h-4 w-4" /> Complete
           </Button>
         )}
@@ -142,7 +142,7 @@ function OrderCard({ order, onUpdateStatus }: { order: KitchenOrder; onUpdateSta
             </Button>
         )}
         {order.status === 'served' && (
-            <div className="flex items-center justify-center w-full text-green-600 font-semibold text-sm gap-2 bg-green-50 rounded-lg p-2 border border-green-200">
+            <div className="flex items-center justify-center w-full text-emerald-700 font-semibold text-sm gap-2 bg-emerald-50 rounded-lg p-2 border border-emerald-200">
                 <Check className="h-4 w-4" />
                 <span>Completed</span>
             </div>
@@ -151,7 +151,7 @@ function OrderCard({ order, onUpdateStatus }: { order: KitchenOrder; onUpdateSta
       
       {isCompleted && (
         <div className="px-4 pb-3 text-center">
-          <div className="text-xs text-gray-600 bg-white/80 rounded-lg px-3 py-2 inline-block shadow-sm border border-gray-200">
+          <div className="text-xs text-stone-600 bg-white/80 rounded-lg px-3 py-2 inline-block shadow-sm border border-stone-200">
             Total time: {formatTime(totalTime)}
           </div>
         </div>
@@ -226,14 +226,14 @@ export function KitchenDisplay() {
       </header>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8 items-start">
         <div className="space-y-4 p-2 rounded-lg bg-muted/40">
-          <h2 className="text-xl sm:text-2xl font-semibold flex items-center gap-2 text-amber-600">
+          <h2 className="text-xl sm:text-2xl font-semibold flex items-center gap-2 text-amber-700">
             <Clock /> New Orders ({pendingOrders.length})
           </h2>
           <ScrollArea className="h-[calc(100vh-12rem)]">
             <div className="space-y-4 pr-4">
               {isLoadingOrders ? (
                 <div className="flex items-center justify-center h-24">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-600"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-700"></div>
                   <span className="ml-2">Loading orders...</span>
                 </div>
               ) : pendingOrders.length > 0 ? (
@@ -246,7 +246,7 @@ export function KitchenDisplay() {
         </div>
         
         <div className="space-y-4 p-2 rounded-lg bg-muted/40">
-          <h2 className="text-xl sm:text-2xl font-semibold flex items-center gap-2 text-blue-600">
+          <h2 className="text-xl sm:text-2xl font-semibold flex items-center gap-2 text-slate-700">
             <Utensils /> Preparing ({preparingOrders.length})
           </h2>
           <ScrollArea className="h-[calc(100vh-12rem)]">
@@ -261,7 +261,7 @@ export function KitchenDisplay() {
         </div>
         
         <div className="space-y-4 p-2 rounded-lg bg-muted/40">
-          <h2 className="text-xl sm:text-2xl font-semibold flex items-center gap-2 text-green-600">
+          <h2 className="text-xl sm:text-2xl font-semibold flex items-center gap-2 text-emerald-700">
             <ChefHat /> Ready ({readyOrders.length})
           </h2>
           <ScrollArea className="h-[calc(100vh-12rem)]">
@@ -276,7 +276,7 @@ export function KitchenDisplay() {
         </div>
         
         <div className="space-y-4 p-2 rounded-lg bg-muted/40">
-          <h2 className="text-xl sm:text-2xl font-semibold flex items-center gap-2 text-gray-600">
+          <h2 className="text-xl sm:text-2xl font-semibold flex items-center gap-2 text-stone-700">
             <Check /> Recently Completed ({servedOrders.length})
           </h2>
           <ScrollArea className="h-[calc(100vh-12rem)]">
