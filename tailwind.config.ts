@@ -65,6 +65,27 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        // Custom premium colors for kitchen order cards
+        amber: {
+          '25': '#fefbf3',
+          '300': '#fcd34d',
+          '200': '#fde68a',
+        },
+        slate: {
+          '25': '#f8fafc',
+          '300': '#cbd5e1',
+          '200': '#e2e8f0',
+        },
+        emerald: {
+          '25': '#f0fdf4',
+          '300': '#6ee7b7',
+          '200': '#a7f3d0',
+        },
+        stone: {
+          '25': '#fafaf9',
+          '300': '#d6d3d1',
+          '200': '#e7e5e4',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
